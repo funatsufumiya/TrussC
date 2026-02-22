@@ -124,6 +124,32 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    // Clipping-aware hit test: when clipping is enabled, reject children
+    // outside this node's rectangle (prevents scrolled-out items from
+    // receiving events through overlapping siblings)
+    // -------------------------------------------------------------------------
+
+    HitResult findHitNodeRecursive(const Ray& globalRay, const Mat4& parentInverseMatrix) override {
+        if (!getActive() || !getVisible()) return HitResult{};
+
+        if (clipping_) {
+            // Pre-check: ray must hit this rect before we check children
+            Mat4 localInverse = getLocalMatrix().inverted();
+            Mat4 globalInverse = localInverse * parentInverseMatrix;
+            Ray localRay = globalRay.transformed(globalInverse);
+
+            float t;
+            Vec3 hp;
+            if (!localRay.intersectZPlane(t, hp) ||
+                hp.x < 0 || hp.x > width_ || hp.y < 0 || hp.y > height_) {
+                return HitResult{};
+            }
+        }
+
+        return Node::findHitNodeRecursive(globalRay, parentInverseMatrix);
+    }
+
+    // -------------------------------------------------------------------------
     // Drawing helpers (for overriding)
     // -------------------------------------------------------------------------
 

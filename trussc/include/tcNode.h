@@ -694,9 +694,10 @@ private:
         return false;
     }
 
-
+protected:
     // Recursive hit test (traversed in reverse draw order)
-    HitResult findHitNodeRecursive(const Ray& globalRay, const Mat4& parentInverseMatrix) {
+    // Protected so that RectNode can override for clipping-aware hit test
+    virtual HitResult findHitNodeRecursive(const Ray& globalRay, const Mat4& parentInverseMatrix) {
         if (!isActive_ || !isVisible_) return HitResult{};
 
         // Calculate inverse matrix for this node
