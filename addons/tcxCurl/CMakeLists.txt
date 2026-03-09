@@ -23,8 +23,12 @@ else()
         set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
         set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
         set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-        set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)  # Windows native TLS
         set(CURL_USE_OPENSSL OFF CACHE BOOL "" FORCE)
+        if(WIN32)
+            # Windows: use Schannel (native TLS)
+            # If Schannel causes renegotiation issues, try CURL_USE_OPENSSL instead
+            set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
+        endif()
         set(CURL_ZLIB OFF CACHE BOOL "" FORCE)
         set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
         set(HTTP_ONLY ON CACHE BOOL "" FORCE)

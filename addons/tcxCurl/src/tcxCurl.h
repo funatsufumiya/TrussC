@@ -193,9 +193,14 @@ inline HttpResponse HttpClient::request(const std::string& method, const std::st
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeoutSeconds_);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
 #ifdef _WIN32
-    // Force TLS 1.3 on Windows to avoid Schannel renegotiation failures
-    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
+    // Force TLS 1.3 (min+max) on Windows to avoid Schannel renegotiation
+    curl_easy_setopt(curl, CURLOPT_SSLVERSION,
+                     CURL_SSLVERSION_TLSv1_3 | CURL_SSLVERSION_MAX_TLSv1_3);
 #endif
+    // TCP keepalive to prevent connection drops on long requests
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPIDLE, 30L);
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPINTVL, 15L);
     if (verbose_) {
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     }
@@ -256,6 +261,13 @@ inline HttpResponse HttpClient::uploadFile(const std::string& path, const std::s
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseBody);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 600L);  // 10 min for large RAW files
+#ifdef _WIN32
+    curl_easy_setopt(curl, CURLOPT_SSLVERSION,
+                     CURL_SSLVERSION_TLSv1_3 | CURL_SSLVERSION_MAX_TLSv1_3);
+#endif
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPIDLE, 30L);
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPINTVL, 15L);
 
     // Custom headers
     struct curl_slist* headers = nullptr;
