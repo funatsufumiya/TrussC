@@ -14,10 +14,16 @@ if(EMSCRIPTEN)
     # WASM: use Emscripten Fetch API
     target_compile_definitions(tcxCurl INTERFACE TCX_HTTP_EMSCRIPTEN=1)
     target_link_options(tcxCurl INTERFACE -sFETCH=1)
+elseif(NOT WIN32)
+    # macOS/Linux: use system libcurl (SecureTransport / OpenSSL)
+    find_package(CURL REQUIRED)
+    target_compile_definitions(tcxCurl INTERFACE TCX_HTTP_CURL=1)
+    target_link_libraries(tcxCurl INTERFACE CURL::libcurl)
 else()
+    # Windows: fetch curl + mbedTLS from source (avoids Schannel renegotiation)
     include(FetchContent)
 
-    # Fetch mbedTLS (if not already provided by another addon like tcxTls)
+    # Fetch mbedTLS
     if(NOT TARGET mbedtls)
         message(STATUS "[tcxCurl] Fetching mbedTLS...")
         FetchContent_Declare(
@@ -39,6 +45,17 @@ else()
     set(MBEDX509_LIBRARY mbedx509 CACHE STRING "" FORCE)
     set(MBEDCRYPTO_LIBRARY mbedcrypto CACHE STRING "" FORCE)
 
+    # Download Mozilla CA certificate bundle for mbedTLS
+    set(CACERT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cacert.pem")
+    if(NOT EXISTS "${CACERT_PATH}")
+        message(STATUS "[tcxCurl] Downloading CA certificate bundle...")
+        file(DOWNLOAD
+            "https://curl.se/ca/cacert.pem"
+            "${CACERT_PATH}"
+            TLS_VERIFY ON
+        )
+    endif()
+
     # Fetch curl with mbedTLS backend
     message(STATUS "[tcxCurl] Fetching curl with mbedTLS backend...")
     set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
@@ -57,13 +74,13 @@ else()
     set(CURL_USE_GSSAPI OFF CACHE BOOL "" FORCE)
     set(USE_NGHTTP2 OFF CACHE BOOL "" FORCE)
     set(USE_NGTCP2 OFF CACHE BOOL "" FORCE)
-    set(CMAKE_DISABLE_FIND_PACKAGE_LDAP OFF CACHE BOOL "" FORCE)
     set(CURL_DISABLE_LDAP ON CACHE BOOL "" FORCE)
     set(CURL_DISABLE_LDAPS ON CACHE BOOL "" FORCE)
     set(CURL_USE_OPENSSL OFF CACHE BOOL "" FORCE)
     set(CURL_USE_SCHANNEL OFF CACHE BOOL "" FORCE)
     set(CURL_USE_SECTRANSP OFF CACHE BOOL "" FORCE)
     set(CURL_USE_MBEDTLS ON CACHE BOOL "" FORCE)
+    set(CURL_CA_BUNDLE "${CACERT_PATH}" CACHE STRING "" FORCE)
     set(CURL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
     set(CURL_ENABLE_EXPORT_TARGET OFF CACHE BOOL "" FORCE)
 
