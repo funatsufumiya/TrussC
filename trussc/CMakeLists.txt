@@ -279,13 +279,24 @@ endfunction()
 function(_trussc_apply_macos_icon_folder TARGET_NAME ICON_FOLDER OUT_SUCCESS)
     set(${OUT_SUCCESS} FALSE PARENT_SCOPE)
 
-    # actool (Xcode に含まれる) を探す
+    # Find actool (included in Xcode)
     find_program(ACTOOL_EXECUTABLE actool
         HINTS /Applications/Xcode.app/Contents/Developer/usr/bin
               /Applications/Xcode-beta.app/Contents/Developer/usr/bin
     )
     if(NOT ACTOOL_EXECUTABLE)
-        message(WARNING "[${TARGET_NAME}] actool not found - skipping .icon folder (install Xcode for macOS 26 Tahoe icon support)")
+        message(STATUS "[${TARGET_NAME}] actool not found - skipping .icon folder (install Xcode for macOS 26 Tahoe icon support)")
+        return()
+    endif()
+
+    # Verify actool actually works (may not function with CLI tools only)
+    execute_process(
+        COMMAND ${ACTOOL_EXECUTABLE} --version
+        RESULT_VARIABLE ACTOOL_TEST
+        OUTPUT_QUIET ERROR_QUIET
+    )
+    if(NOT ACTOOL_TEST EQUAL 0)
+        message(STATUS "[${TARGET_NAME}] actool found but not functional - skipping .icon folder")
         return()
     endif()
 
@@ -312,7 +323,7 @@ function(_trussc_apply_macos_icon_folder TARGET_NAME ICON_FOLDER OUT_SUCCESS)
     )
 
     if(NOT RESULT EQUAL 0 OR NOT EXISTS "${ASSETS_CAR}")
-        message(WARNING "[${TARGET_NAME}] Failed to compile .icon folder with actool")
+        message(STATUS "[${TARGET_NAME}] Failed to compile .icon folder with actool")
         return()
     endif()
 
