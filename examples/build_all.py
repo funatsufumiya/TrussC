@@ -193,7 +193,7 @@ def main():
 
         Colors.print(f"[{i+1}/{total}] Updating & Building: {example_name}", Colors.YELLOW)
 
-        pg_cmd = [str(pg_bin), "--update", example_dir, "--tc-root", ROOT_DIR]
+        pg_cmd = [str(pg_bin), "--update", example_dir, "--tc-root", ROOT_DIR, "--ide", "cmake"]
         if args.web:
             pg_cmd.append("--web")
         
