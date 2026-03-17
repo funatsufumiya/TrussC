@@ -212,37 +212,26 @@ bool TCVideoPlayerImpl::createD3D11Device() {
     };
 
     D3D_FEATURE_LEVEL featureLevel;
-    UINT flags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-#ifdef _DEBUG
-    flags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+    // Try progressively relaxed flags until one succeeds
+    struct { UINT flags; const char* desc; } attempts[] = {
+        { D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_DEBUG,
+          "VIDEO_SUPPORT + DEBUG" },
+        { D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+          "VIDEO_SUPPORT" },
+        { D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_DEBUG,
+          "BGRA + DEBUG" },
+        { D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+          "BGRA only" },
+    };
 
-    HRESULT hr = D3D11CreateDevice(
-        nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
-        nullptr,
-        flags,
-        featureLevels,
-        ARRAYSIZE(featureLevels),
-        D3D11_SDK_VERSION,
-        &d3dDevice_,
-        &featureLevel,
-        &d3dContext_
-    );
-
-    if (FAILED(hr)) {
-        // Retry without VIDEO_SUPPORT (use CPU decoding instead of GPU)
-        logWarning("VideoPlayer") << "D3D11 with VIDEO_SUPPORT failed, retrying without";
-        flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
-        flags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+    HRESULT hr = E_FAIL;
+    for (auto& a : attempts) {
         hr = D3D11CreateDevice(
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
-            flags,
+            a.flags,
             featureLevels,
             ARRAYSIZE(featureLevels),
             D3D11_SDK_VERSION,
@@ -250,10 +239,15 @@ bool TCVideoPlayerImpl::createD3D11Device() {
             &featureLevel,
             &d3dContext_
         );
+        if (SUCCEEDED(hr)) {
+            logNotice("VideoPlayer") << "D3D11 device created with: " << a.desc;
+            break;
+        }
+        logWarning("VideoPlayer") << "D3D11 failed with: " << a.desc;
     }
 
     if (FAILED(hr)) {
-        logError("VideoPlayer") << "Failed to create D3D11 device";
+        logError("VideoPlayer") << "Failed to create D3D11 device (all attempts failed)";
         return false;
     }
 
