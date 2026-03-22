@@ -701,6 +701,9 @@ public:
                         float sx, float sy, float sw, float sh) {
         if (!loaded || !currentLut || !sourceView.id) return;
 
+        // Ensure render pass is active
+        ensureSwapchainPass();
+
         // Flush sokol_gl before custom drawing
         sgl_draw();
 
@@ -749,6 +752,7 @@ public:
         sg_apply_scissor_rectf(0, 0, winW, winH, true);
 
         // Restore sokol_gl state (use logical coordinates, not framebuffer pixels)
+        sg_reset_state_cache();
         sgl_defaults();
         sgl_matrix_mode_projection();
         sgl_ortho(0.0f, winW / dpi, winH / dpi, 0.0f, -10000.0f, 10000.0f);

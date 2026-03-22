@@ -512,7 +512,10 @@ public:
     void draw() {
         if (!loaded) return;
 
-        // Flush sokol_gl
+        // Ensure render pass is active (swapchain or FBO)
+        ensureSwapchainPass();
+
+        // Flush sokol_gl so it draws before the fullscreen quad
         sgl_draw();
 
         sg_apply_pipeline(pipeline);
@@ -531,7 +534,8 @@ public:
 
         sg_draw(0, 6, 1);
 
-        // Restore sokol_gl
+        // Restore sokol_gl state
+        sg_reset_state_cache();
         sgl_defaults();
         sgl_matrix_mode_projection();
         sgl_ortho(0.0f, (float)sapp_width(), (float)sapp_height(), 0.0f, -10000.0f, 10000.0f);
