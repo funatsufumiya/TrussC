@@ -54,7 +54,12 @@ void tcApp::draw() {
 ```cpp
 // src/main.cpp
 #include "tcApp.h"
-TC_MAIN(tcApp, 960, 600)
+
+int main() {
+    tc::WindowSettings settings;
+    settings.setSize(960, 600);
+    return tc::runApp<tcApp>(settings);
+}
 ```
 
 ### FPS Control
@@ -72,15 +77,26 @@ drawRect(x, y, w, h)
 drawRectRounded(x, y, w, h, radius)
 drawCircle(x, y, radius)
 drawEllipse(x, y, rx, ry)
-drawLine(x1, y1, x2, y2)         // Always 1px (use StrokeMesh for thick lines)
+drawLine(x1, y1, x2, y2)         // Always 1px, lightweight
+drawStroke(x1, y1, x2, y2)       // Thick line (respects setStrokeWeight). Heavier than drawLine
 drawTriangle(x1, y1, x2, y2, x3, y3)
+```
+
+### Stroke Path
+```cpp
+beginStroke();           // Start a free-form thick stroke path
+vertex(x, y);            // Add points
+endStroke();             // Open path
+endStroke(true);         // Closed path
+setStrokeCap(StrokeCap::Round);    // Round / Butt / Square
+setStrokeJoin(StrokeJoin::Round);  // Round / Miter / Bevel
 ```
 
 ### Fill & Stroke
 ```cpp
 fill();                // Fill mode (default)
 noFill();              // Stroke-only mode
-setStrokeWeight(2.0f);
+setStrokeWeight(2.0f); // Affects drawStroke / beginStroke
 ```
 
 ### Text
@@ -95,6 +111,10 @@ font.drawString("Hello", x, y);
 
 ### Color
 ```cpp
+clear();                              // Transparent black (0,0,0,0)
+clear(0.1f);                          // Grayscale (alpha = 1)
+clear(0.1f, 0.1f, 0.1f);             // RGB
+
 setColor(0.5f);                       // Grayscale
 setColor(1.0f, 0.0f, 0.0f);          // RGB (0-1 range!)
 setColor(colors::cornflowerBlue);     // Named constant
@@ -102,7 +122,7 @@ setColor(colors::cornflowerBlue);     // Named constant
 Color c(0.5f, 0.0f, 1.0f);           // RGB
 Color::fromHex(0xFF00FF);            // Hex
 Color::fromBytes(255, 0, 255);       // 0-255 range
-Color::fromHSB(hue, sat, bri);       // H: 0-TAU, S/B: 0-1
+Color::fromHSB(hue, sat, bri);       // H/S/B: all 0-1
 Color::fromOKLCH(L, C, H);          // Perceptually uniform
 
 Color c3 = c1.lerp(c2, 0.5f);       // Interpolation (OKLab, perceptually uniform)
@@ -221,8 +241,8 @@ Fbo fbo;
 fbo.allocate(512, 512);             // Basic
 fbo.allocate(512, 512, 4);          // With 4x MSAA
 
-fbo.begin();                        // Start (clears to black)
-fbo.begin(0, 0, 0, 0);             // Start (clears to transparent)
+fbo.begin();                        // Preserve previous content (LOAD)
+fbo.begin(0.1f, 0.1f, 0.1f, 1.0f); // Clear with specified color
 // ... draw ...
 fbo.end();
 
@@ -231,7 +251,10 @@ fbo.draw(0, 0, w, h);              // Scaled
 fbo.copyTo(image);                  // FBO → Image
 fbo.save("output.png");
 ```
-Nested `begin()` is NOT supported. Must `end()` before another `begin()`.
+- `begin()` preserves previous frame content (trail/afterimage effects)
+- `begin(r,g,b,a)` clears with specified color
+- Use `clear()` inside begin/end to clear to transparent black
+- Nested `begin()` is NOT supported. Must `end()` before another `begin()`.
 
 ### Shader (sokol-shdc)
 Shaders use sokol-shdc format (`.glsl` file compiled to C header). Place `.glsl` in `src/shaders/`.
@@ -434,11 +457,19 @@ sound.setLoop(true);
 
 ### ChipSound — Procedural Sound
 ```cpp
-auto note = ChipSound::note()
-    .wave(Wave::Square).hz(440).duration(0.2f)
-    .adsr(0.01f, 0.05f, 0.5f, 0.1f);
-Sound s = note.build();
+ChipSoundNote n;
+n.wave = Wave::Square;    // Square / Sin / Triangle / Sawtooth / Noise
+n.hz = 440.0f;
+n.duration = 0.2f;
+n.volume = 0.3f;
+Sound s = n.build();
 s.play();
+
+// Combine multiple notes with timing
+ChipSoundBundle bundle;
+bundle.add(n, 0.0f);      // note at time 0
+bundle.add(n2, 0.1f);     // another note at time 0.1s
+Sound sfx = bundle.build();
 ```
 
 ## Key Classes
@@ -457,7 +488,7 @@ s.play();
 2. **Angles use TAU (2π), not PI.** Half turn = `TAU * 0.5`.
 3. **Use `destroy()` for nodes.** Don't erase from vectors directly.
 4. **`enableEvents()` required** for Node to receive mouse events.
-5. **`drawLine()` is always 1px.** Use `StrokeMesh` for thick lines.
+5. **`drawLine()` is always 1px.** Use `drawStroke()` or `beginStroke()/endStroke()` for thick lines.
 6. **Inside `Node::draw()`, coordinates are local.** Already translated to node position.
 7. **Texture update once per frame.** `loadData()`/`update()` ignored on second call.
 
