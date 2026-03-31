@@ -220,7 +220,7 @@ macro(trussc_app)
         find_program(_TC_ZIPALIGN zipalign HINTS "$ENV{ANDROID_HOME}/build-tools/35.0.0" "$ENV{ANDROID_HOME}/build-tools/34.0.0")
         find_program(_TC_APKSIGNER apksigner HINTS "$ENV{ANDROID_HOME}/build-tools/35.0.0" "$ENV{ANDROID_HOME}/build-tools/34.0.0")
 
-        if(_TC_AAPT AND _TC_ZIPALIGN AND _TC_APKSIGNER)
+        if(_TC_AAPT AND _TC_ZIPALIGN AND _TC_APKSIGNER AND EXISTS "$ENV{HOME}/.android/debug.keystore")
             # Find android.jar
             set(_TC_ANDROID_JAR "$ENV{ANDROID_HOME}/platforms/android-35/android.jar")
             if(NOT EXISTS "${_TC_ANDROID_JAR}")
