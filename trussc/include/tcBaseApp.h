@@ -103,6 +103,8 @@ public:
 
     virtual void touchPressed(const TouchEventArgs& touch) { (void)touch; }
     virtual void touchMoved(const TouchEventArgs& touch) { (void)touch; }
+    /// Also called on system cancellation (incoming call, gesture override, etc.).
+    /// Check touch.cancelled to distinguish from normal release.
     virtual void touchReleased(const TouchEventArgs& touch) { (void)touch; }
 
     // -------------------------------------------------------------------------

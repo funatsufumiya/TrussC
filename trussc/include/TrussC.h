@@ -2241,12 +2241,13 @@ namespace internal {
                     touchArgs.touches[i].changed = ev->touches[i].changed;
                 }
 
-                // Fire touch events (listeners receive via events().touchBegan etc.)
+                // Fire touch events
                 if (ev->type == SAPP_EVENTTYPE_TOUCHES_BEGAN) {
                     events().touchPressed.notify(touchArgs);
                 } else if (ev->type == SAPP_EVENTTYPE_TOUCHES_MOVED) {
                     events().touchMoved.notify(touchArgs);
                 } else {
+                    touchArgs.cancelled = (ev->type == SAPP_EVENTTYPE_TOUCHES_CANCELLED);
                     events().touchReleased.notify(touchArgs);
                 }
 

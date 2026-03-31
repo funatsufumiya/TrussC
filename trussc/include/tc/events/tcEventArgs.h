@@ -98,6 +98,9 @@ struct TouchEventArgs {
     static constexpr int MAX_TOUCHES = 8;  // Matches SAPP_MAX_TOUCHPOINTS
     TouchPoint touches[MAX_TOUCHES];
     int numTouches = 0;
+    bool cancelled = false;   // true when touchReleased is due to system cancellation
+                              // (e.g. incoming call, system gesture). Released is still
+                              // fired — check this flag for cancellation-specific handling.
 
     // Convenience: first touch
     float x() const { return numTouches > 0 ? touches[0].x : 0.0f; }
