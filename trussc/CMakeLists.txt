@@ -171,6 +171,7 @@ elseif(TC_PLATFORM_MACOS)
         "-framework CoreAudio"
         "-framework IOKit"
         "-framework CoreDisplay"
+        "-framework CoreLocation"
     )
     target_compile_options(TrussC PRIVATE -fobjc-arc)
 

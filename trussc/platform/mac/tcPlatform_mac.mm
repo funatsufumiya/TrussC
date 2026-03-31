@@ -14,6 +14,7 @@
 #include <AudioToolbox/AudioServices.h>
 #include <IOKit/ps/IOPowerSources.h>
 #include <IOKit/ps/IOPSKeys.h>
+#import <CoreLocation/CoreLocation.h>
 
 // sokol_app の swapchain 取得関数
 #include "sokol_app.h"
@@ -365,7 +366,57 @@ float getCompassHeading() { return 0.0f; }
 
 bool isProximityClose() { return false; }
 
-Location getLocation() { return Location(); } // TODO: CoreLocation
+} // namespace platform
+} // namespace trussc
+
+// ---------------------------------------------------------------------------
+// Location (CoreLocation) — ObjC declarations must be at global scope
+// ---------------------------------------------------------------------------
+static trussc::Location _macLastLocation;
+static bool _macLocationStarted = false;
+
+@interface _TCMacLocationDelegate : NSObject <CLLocationManagerDelegate>
+@end
+static _TCMacLocationDelegate* _macLocationDelegate = nil;
+static CLLocationManager* _macLocationManager = nil;
+
+@implementation _TCMacLocationDelegate
+- (void)locationManager:(CLLocationManager*)manager didUpdateLocations:(NSArray<CLLocation*>*)locations {
+    CLLocation* loc = locations.lastObject;
+    if (loc) {
+        _macLastLocation.latitude = loc.coordinate.latitude;
+        _macLastLocation.longitude = loc.coordinate.longitude;
+        _macLastLocation.altitude = loc.altitude;
+        _macLastLocation.accuracy = (float)loc.horizontalAccuracy;
+    }
+}
+- (void)locationManager:(CLLocationManager*)manager didFailWithError:(NSError*)error {
+    trussc::logWarning() << "[Location] " << [[error localizedDescription] UTF8String];
+}
+- (void)locationManagerDidChangeAuthorization:(CLLocationManager*)manager {
+    if (manager.authorizationStatus == kCLAuthorizationStatusAuthorized) {
+        [manager startUpdatingLocation];
+    }
+}
+@end
+
+namespace trussc {
+namespace platform {
+
+Location getLocation() {
+    if (!_macLocationStarted) {
+        _macLocationStarted = true;
+        _macLocationDelegate = [[_TCMacLocationDelegate alloc] init];
+        _macLocationManager = [[CLLocationManager alloc] init];
+        _macLocationManager.delegate = _macLocationDelegate;
+        _macLocationManager.desiredAccuracy = kCLLocationAccuracyBest;
+        if ([_macLocationManager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
+            [_macLocationManager requestAlwaysAuthorization];
+        }
+        [_macLocationManager startUpdatingLocation];
+    }
+    return _macLastLocation;
+}
 
 } // namespace platform
 } // namespace trussc
