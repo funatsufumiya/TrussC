@@ -296,20 +296,16 @@ macro(trussc_app)
             XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.trussc.${PROJECT_NAME}"
         )
-        # Code signing: if TRUSSC_IOS_TEAM_ID is set, enable signing for device deployment
+        # Code signing: always allow automatic signing, let user pick team in Xcode
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development"
+            XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+            XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "YES"
+            XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "YES"
+        )
         if(TRUSSC_IOS_TEAM_ID)
             set_target_properties(${PROJECT_NAME} PROPERTIES
-                XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development"
-                XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
-                XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "YES"
-                XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "YES"
                 XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${TRUSSC_IOS_TEAM_ID}"
-            )
-        else()
-            set_target_properties(${PROJECT_NAME} PROPERTIES
-                XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
-                XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO"
-                XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
             )
         endif()
         # Copy data folder into app bundle

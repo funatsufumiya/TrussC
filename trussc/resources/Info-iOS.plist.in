@@ -43,5 +43,9 @@
 	<string>This app uses the camera for video capture.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app uses the microphone for audio input.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>This app uses motion sensors.</string>
 </dict>
 </plist>

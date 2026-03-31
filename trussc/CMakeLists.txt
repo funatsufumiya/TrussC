@@ -150,6 +150,9 @@ elseif(TC_PLATFORM_IOS)
         "-framework CoreMedia"
         "-framework CoreVideo"
         "-framework UniformTypeIdentifiers"
+        "-framework CoreMotion"
+        "-framework CoreLocation"
+        "-framework MediaPlayer"
     )
     target_compile_options(TrussC PRIVATE -fobjc-arc)
 

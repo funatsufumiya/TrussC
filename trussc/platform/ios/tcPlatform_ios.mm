@@ -339,7 +339,11 @@ Location getLocation() {
 
 // ---------------------------------------------------------------------------
 // iOS immersive mode: hide status bar
+} // namespace platform (temporarily close for extern)
+} // namespace trussc
 extern bool _sapp_ios_immersive_mode;
+namespace trussc {
+namespace platform {
 void setImmersiveMode(bool enabled) {
     _sapp_ios_immersive_mode = enabled;
     // Tell UIKit to re-query prefersStatusBarHidden

@@ -6967,7 +6967,8 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
 @end
 
 // Modified by tettou771 for TrussC: custom view controller for runtime orientation + immersive mode
-static bool _sapp_ios_immersive_mode = false;
+// Modified by tettou771 for TrussC: non-static so tcPlatform_ios.mm can access
+bool _sapp_ios_immersive_mode = false;
 @implementation _sapp_ios_view_ctrl
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return _sapp.ios.supported_orientations;
