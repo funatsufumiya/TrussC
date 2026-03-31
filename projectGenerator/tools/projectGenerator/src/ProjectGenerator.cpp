@@ -911,7 +911,21 @@ void ProjectGenerator::runCrossCompilePresets(const string& path) {
 #endif
     if (settings_.generateAndroidBuild) presets.push_back("android");
 
+    // Map preset name to build directory
+    auto getBuildDir = [](const string& preset) -> string {
+        if (preset == "ios") return "xcode-ios";
+        if (preset == "android") return "build-android";
+        return "build-" + preset;
+    };
+
     for (auto& preset : presets) {
+        // Clean existing build directory to avoid stale cache
+        string buildDir = path + "/" + getBuildDir(preset);
+        if (fs::exists(buildDir)) {
+            log("Cleaning " + getBuildDir(preset) + "...");
+            fs::remove_all(buildDir);
+        }
+
         log("Running CMake configure (preset: " + preset + ")...");
         string cmd = "cd \"" + path + "\" && " + getCmakePath() + " --preset " + preset;
         auto [result, output] = executeCommand(cmd);
