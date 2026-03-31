@@ -165,6 +165,9 @@ elseif(TC_PLATFORM_MACOS)
         "-framework AVFoundation"
         "-framework CoreMedia"
         "-framework CoreVideo"
+        "-framework CoreAudio"
+        "-framework IOKit"
+        "-framework CoreDisplay"
     )
     target_compile_options(TrussC PRIVATE -fobjc-arc)
 

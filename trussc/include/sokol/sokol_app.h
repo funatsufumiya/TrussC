@@ -6550,7 +6550,7 @@ _SOKOL_PRIVATE void _sapp_ios_mtl_init(UIWindowScene* windowScene) {
 
     [_sapp.ios.view.layer addSublayer:_sapp.ios.mtl.layer];
 
-    _sapp.ios.view_ctrl = [[UIViewController alloc] init];
+    _sapp.ios.view_ctrl = [[_sapp_ios_view_ctrl alloc] init];
     _sapp.ios.view_ctrl.modalPresentationStyle = UIModalPresentationFullScreen;
     _sapp.ios.view_ctrl.view = _sapp.ios.view;
     _sapp.ios.window.rootViewController = _sapp.ios.view_ctrl;
@@ -6966,10 +6966,17 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
 }
 @end
 
-// Modified by tettou771 for TrussC: custom view controller for runtime orientation control
+// Modified by tettou771 for TrussC: custom view controller for runtime orientation + immersive mode
+static bool _sapp_ios_immersive_mode = false;
 @implementation _sapp_ios_view_ctrl
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return _sapp.ios.supported_orientations;
+}
+- (BOOL)prefersStatusBarHidden {
+    return _sapp_ios_immersive_mode;
+}
+- (BOOL)prefersHomeIndicatorAutoHidden {
+    return _sapp_ios_immersive_mode;
 }
 @end
 
