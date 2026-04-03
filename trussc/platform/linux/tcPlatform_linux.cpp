@@ -16,7 +16,6 @@
 #include <GL/gl.h>
 
 namespace trussc {
-namespace platform {
 
 void bringWindowToFront() {
     Display* display = XOpenDisplay(nullptr);
@@ -63,7 +62,7 @@ float getDisplayScaleFactor() {
 void setImmersiveMode(bool enabled) { (void)enabled; }
 bool getImmersiveMode() { return false; }
 
-void setWindowSize(int width, int height) {
+void setWindowSizeLogical(int width, int height) {
     // TODO: Implement using X11
     // sokol_app handles window creation, so we need to access the X11 window
     // For now, this is a no-op
@@ -124,6 +123,9 @@ bool captureWindow(Pixels& outPixels) {
 }
 
 bool saveScreenshot(const std::filesystem::path& path) {
+    if (path.is_relative()) {
+        return saveScreenshot(getDataPath(path.string()));
+    }
     Pixels pixels;
     if (!captureWindow(pixels)) {
         return false;
@@ -176,7 +178,6 @@ float getCompassHeading() { return 0.0f; }
 bool isProximityClose() { return false; }
 Location getLocation() { return Location(); }
 
-} // namespace platform
 } // namespace trussc
 
 #endif // __linux__

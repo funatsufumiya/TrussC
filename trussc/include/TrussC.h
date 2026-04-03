@@ -1470,10 +1470,10 @@ inline void setWindowSize(int width, int height) {
     if (internal::pixelPerfectMode) {
         // Pixel perfect mode: convert framebuffer size to logical size
         float scale = sapp_dpi_scale();
-        platform::setWindowSize(static_cast<int>(width / scale), static_cast<int>(height / scale));
+        setWindowSizeLogical(static_cast<int>(width / scale), static_cast<int>(height / scale));
     } else {
         // Logical coordinate mode: as is
-        platform::setWindowSize(width, height);
+        setWindowSizeLogical(width, height);
     }
 }
 
@@ -1830,19 +1830,10 @@ inline void exitApp() {
 // Screenshot
 // ---------------------------------------------------------------------------
 
-// Save screenshot (uses OS window capture feature)
-// Supported formats: .png, .jpg/.jpeg, .tiff/.tif, .bmp
-inline bool saveScreenshot(const std::filesystem::path& path) {
-    // Convert relative paths to data path
-    if (path.is_relative()) {
-        return platform::saveScreenshot(getDataPath(path.string()));
-    }
-    return platform::saveScreenshot(path);
-}
 
 // Capture screen to Pixels
 inline bool grabScreen(Pixels& outPixels) {
-    return platform::captureWindow(outPixels);
+    return captureWindow(outPixels);
 }
 
 // ---------------------------------------------------------------------------
@@ -2025,7 +2016,7 @@ namespace internal {
         #endif
 
         // Bring window to front on startup
-        platform::bringWindowToFront();
+        bringWindowToFront();
 
         if (appSetupFunc) appSetupFunc();
 
@@ -2477,7 +2468,7 @@ sapp_desc buildAppDescriptor(const WindowSettings& settings = WindowSettings()) 
     if (settings.pixelPerfect) {
         // For pixel perfect, treat specified size as framebuffer size
         // and convert to logical window size
-        float displayScale = platform::getDisplayScaleFactor();
+        float displayScale = getDisplayScaleFactor();
         desc.width = static_cast<int>(settings.width / displayScale);
         desc.height = static_cast<int>(settings.height / displayScale);
     } else {

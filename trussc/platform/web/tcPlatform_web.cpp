@@ -9,7 +9,6 @@
 #include <emscripten/html5.h>
 
 namespace trussc {
-namespace platform {
 
 float getDisplayScaleFactor() {
     // ブラウザの devicePixelRatio を取得
@@ -20,7 +19,7 @@ float getDisplayScaleFactor() {
 void setImmersiveMode(bool enabled) { (void)enabled; }
 bool getImmersiveMode() { return false; }
 
-void setWindowSize(int width, int height) {
+void setWindowSizeLogical(int width, int height) {
     // Emscripten では canvas サイズを変更
     // sokol_app が使用する canvas ID を指定
     emscripten_set_canvas_element_size("canvas", width, height);
@@ -68,7 +67,6 @@ void bringWindowToFront() {
     // no-op: web apps have no window management
 }
 
-} // namespace platform
 } // namespace trussc
 
 #endif // __EMSCRIPTEN__

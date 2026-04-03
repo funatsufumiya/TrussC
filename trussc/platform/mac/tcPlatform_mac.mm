@@ -20,7 +20,6 @@
 #include "sokol_app.h"
 
 namespace trussc {
-namespace platform {
 
 void bringWindowToFront() {
     NSWindow* window = (__bridge NSWindow*)sapp_macos_get_window();
@@ -54,7 +53,7 @@ float getDisplayScaleFactor() {
 void setImmersiveMode(bool enabled) { (void)enabled; }
 bool getImmersiveMode() { return false; }
 
-void setWindowSize(int width, int height) {
+void setWindowSizeLogical(int width, int height) {
     // メインウィンドウを取得
     NSWindow* window = [[NSApplication sharedApplication] mainWindow];
     if (!window) {
@@ -159,7 +158,11 @@ bool captureWindow(Pixels& outPixels) {
 }
 
 bool saveScreenshot(const std::filesystem::path& path) {
-    // まず Pixels にキャプチャ
+    // Resolve relative paths
+    if (path.is_relative()) {
+        return saveScreenshot(getDataPath(path.string()));
+    }
+    // Capture to Pixels
     Pixels pixels;
     if (!captureWindow(pixels)) {
         return false;
@@ -374,7 +377,6 @@ float getCompassHeading() { return 0.0f; }
 
 bool isProximityClose() { return false; }
 
-} // namespace platform
 } // namespace trussc
 
 // ---------------------------------------------------------------------------
@@ -409,7 +411,6 @@ static CLLocationManager* _macLocationManager = nil;
 @end
 
 namespace trussc {
-namespace platform {
 
 Location getLocation() {
     if (!_macLocationStarted) {
@@ -426,7 +427,6 @@ Location getLocation() {
     return _macLastLocation;
 }
 
-} // namespace platform
 } // namespace trussc
 
 #endif // __APPLE__

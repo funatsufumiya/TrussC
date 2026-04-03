@@ -45,7 +45,7 @@ bool getImmersiveMode() {
     return immersiveMode_;
 }
 
-void setWindowSize(int width, int height) {
+void setWindowSizeLogical(int width, int height) {
     // Android apps are fullscreen — window size is determined by the device
     (void)width;
     (void)height;
@@ -99,6 +99,9 @@ bool captureWindow(Pixels& outPixels) {
 }
 
 bool saveScreenshot(const std::filesystem::path& path) {
+    if (path.is_relative()) {
+        return saveScreenshot(getDataPath(path.string()));
+    }
     Pixels pixels;
     if (!captureWindow(pixels)) {
         return false;
