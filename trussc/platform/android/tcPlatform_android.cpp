@@ -288,7 +288,7 @@ float getCompassHeading() {
 
     // Azimuth: 0=North, positive=East (clockwise), in radians
     float heading = atan2f(Hy, My);
-    if (heading < 0) heading += 2.0f * 3.14159265f;
+    if (heading < 0) heading += TAU;
     return heading;
 }
 

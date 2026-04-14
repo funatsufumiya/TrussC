@@ -330,7 +330,7 @@ float getCompassHeading() {
     if (!motion) return 0.0f;
     // heading from magnetic north, convert degrees to radians
     double heading = motion.heading;
-    return (float)(heading * M_PI / 180.0);
+    return (float)(heading * TAU / 360.0);
 }
 
 // ---------------------------------------------------------------------------
