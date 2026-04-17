@@ -511,9 +511,28 @@ void TCVideoPlayerImpl::update(VideoPlayer* player) {
 
     if (!isLoaded_ || !isPlaying_ || isPaused_) return;
 
-    // Calculate target PTS based on elapsed time
-    double elapsed = av_gettime_relative() / 1000000.0 - playbackStartTime_;
-    double targetPts = elapsed * speed_;
+    // Target PTS: use audio as master clock when available (no drift).
+    // Fall back to wall clock for audio-less videos.
+    double targetPts;
+    if (audioBuffer_) {
+        targetPts = audioSound_.getPosition();
+    } else {
+        double elapsed = av_gettime_relative() / 1000000.0 - playbackStartTime_;
+        targetPts = elapsed * speed_;
+    }
+
+    // Hard re-sync if drift exceeds threshold (e.g. window backgrounded on
+    // Wayland — compositor throttles frame callbacks while audio keeps
+    // playing; CPU spikes; decode stalls). Seeking is far cheaper than
+    // decoding every intermediate frame to catch up.
+    // Threshold configurable via VideoPlayer::setResyncThreshold();
+    // <= 0 disables the check.
+    float resyncThreshold = player ? player->getResyncThreshold() : 0.5f;
+    if (resyncThreshold > 0.0f &&
+        std::abs(targetPts - currentPts_) > resyncThreshold) {
+        seekToTime(targetPts);
+        return;  // next update() will pick up freshly decoded frames
+    }
 
     // Get frame from queue if available and PTS is right
     std::lock_guard<std::mutex> lock(mutex_);
