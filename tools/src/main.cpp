@@ -2395,7 +2395,7 @@ _trusscli() {
     esac
 }
 
-_trusscli "$@"
+compdef _trusscli trusscli
 )ZSH";
 
 static const char* kBashCompletion = R"BASH(
