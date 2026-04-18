@@ -60,9 +60,10 @@ rm -rf "$SCRIPT_DIR/trusscli.app"
 ln -s "$SOURCE_DIR/bin/trusscli.app" "$SCRIPT_DIR/trusscli.app"
 
 # Install symlink to /usr/local/bin so trusscli is on PATH
-# Skip if symlink already exists
-if [ -L "/usr/local/bin/trusscli" ]; then
-    echo "PATH symlink already installed."
+# Skip only if it already points to THIS binary
+BIN_TARGET="$SOURCE_DIR/bin/trusscli.app/Contents/MacOS/trusscli"
+CURRENT_LINK=$(readlink /usr/local/bin/trusscli 2>/dev/null)
+if [ "$CURRENT_LINK" = "$BIN_TARGET" ]; then
     INSTALL_PATH_LINK="skip"
 else
     echo ""

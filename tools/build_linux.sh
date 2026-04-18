@@ -134,9 +134,10 @@ EOF
 esac
 
 # Install symlink to /usr/local/bin so trusscli is on PATH
-# Skip if symlink already exists and points to the right place
-if [ -L "/usr/local/bin/trusscli" ]; then
-    echo "PATH symlink already installed."
+# Skip only if it already points to THIS binary
+BIN_TARGET="$SOURCE_DIR/bin/trusscli"
+CURRENT_LINK=$(readlink /usr/local/bin/trusscli 2>/dev/null)
+if [ "$CURRENT_LINK" = "$BIN_TARGET" ]; then
     INSTALL_PATH_LINK="skip"
 else
     echo ""
