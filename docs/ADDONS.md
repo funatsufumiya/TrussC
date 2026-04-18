@@ -12,6 +12,7 @@ TrussC can be extended with an addon system, similar to openFrameworks' ofxAddon
 4. [Creating Addons](#creating-addons)
 5. [Naming Conventions](#naming-conventions)
 6. [Dependencies](#dependencies)
+7. [Bundled Addon Details](#bundled-addon-details)
 
 ---
 
@@ -120,15 +121,23 @@ trussc_app()
 
 ## Installing Existing Addons
 
-### Official Addons
+### Bundled Addons
 
 Addons included with TrussC:
 
-| Addon Name | Description |
-|------------|-------------|
-| tcxBox2d | Box2D 2D physics engine |
-| tcxOsc | OSC protocol send/receive |
+| Addon | Description |
+|-------|-------------|
+| tcxBox2d | 2D physics engine (Box2D) |
+| tcxCurl | HTTPS client (libcurl) |
+| tcxGltf | glTF 2.0 / GLB model loader (cgltf) |
+| tcxHap | Hap video codec for fast GPU playback |
+| tcxImGui | Dear ImGui integration |
+| tcxLut | 3D LUT color grading |
+| tcxObj | Wavefront OBJ model import/export |
+| tcxOsc | OSC (Open Sound Control) protocol |
+| tcxQuadWarp | Quad warp / projection mapping |
 | tcxTls | TLS/SSL communication (mbedTLS) |
+| tcxWebSocket | WebSocket client and server |
 
 ### Third-Party Addons
 
@@ -331,11 +340,11 @@ target_link_libraries(${ADDON_NAME} PUBLIC somelib)
 
 ---
 
-## Official Addon List
+## Bundled Addon Details
 
 ### tcxBox2d
 
-TrussC wrapper for Box2D 2D physics engine.
+2D physics engine (Box2D).
 
 **Features:**
 - World (physics world)
@@ -374,6 +383,57 @@ class tcApp : public App {
 };
 ```
 
+### tcxCurl
+
+HTTPS client using libcurl (FetchContent).
+
+**Features:**
+- HTTP/HTTPS GET, POST, PUT, DELETE
+- Header and body handling
+- Async requests
+
+### tcxGltf
+
+glTF 2.0 / GLB model loader using cgltf.
+
+**Features:**
+- Load glTF 2.0 and GLB files
+- Embedded textures, materials (PBR)
+- Mesh, skeleton, animation support
+
+### tcxHap
+
+Hap video codec for fast GPU-accelerated playback.
+
+**Features:**
+- Hap, Hap Alpha, Hap Q codecs
+- GPU-side decompression (S3TC/DXT)
+
+### tcxImGui
+
+Dear ImGui integration.
+
+**Features:**
+- Full Dear ImGui API
+- Integrated with TrussC rendering pipeline
+
+### tcxLut
+
+3D LUT (Look-Up Table) color grading.
+
+**Features:**
+- Load .cube LUT files
+- Apply color grading to Texture/Fbo
+
+### tcxObj
+
+Wavefront OBJ model import/export.
+
+**Features:**
+- Load .obj + .mtl files
+- Phong-to-PBR material conversion
+- Export meshes to OBJ format
+
 ### tcxOsc
 
 OSC (Open Sound Control) protocol send/receive.
@@ -383,10 +443,28 @@ OSC (Open Sound Control) protocol send/receive.
 - OscReceiver (receive OSC messages)
 - OscMessage, OscBundle (message construction)
 
+### tcxQuadWarp
+
+Quad warp / projection mapping.
+
+**Features:**
+- 4-corner perspective warping
+- Interactive corner editing
+- Save/load warp configuration
+
 ### tcxTls
 
-TLS/SSL communication support (using mbedTLS).
+TLS/SSL communication support (mbedTLS).
 
 **Features:**
 - Secure TCP communication
 - Certificate verification
+
+### tcxWebSocket
+
+WebSocket client and server.
+
+**Features:**
+- WebSocket client (ws:// and wss://)
+- WebSocket server
+- Text and binary messages
