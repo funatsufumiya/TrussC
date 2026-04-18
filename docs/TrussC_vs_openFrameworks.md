@@ -408,7 +408,7 @@ Reference for oF users finding equivalent features in TrussC.
 
 | openFrameworks | TrussC | Notes |
 |:---|:---|:---|
-| `ofxGui / ofxImGui` | `tcxImGui` addon | Add via `trusscli add tcxImGui` or addons.make |
+| `ofxGui / ofxImGui` | `ImGui (built-in)` | Included by default |
 
 ### **I/O**
 
