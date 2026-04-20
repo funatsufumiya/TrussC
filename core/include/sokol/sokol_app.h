@@ -2842,10 +2842,6 @@ typedef struct {
     @end
 #endif
 
-// Modified by tettou771 for TrussC: custom view controller for runtime orientation control
-@interface _sapp_ios_view_ctrl : UIViewController
-@end
-
 typedef struct {
     UIWindow* window;
     _sapp_ios_view* view;
@@ -2873,7 +2869,6 @@ typedef struct {
     EAGLContext* eagl_ctx;
     #endif
     bool suspended;
-    NSUInteger supported_orientations;  // UIInterfaceOrientationMask (default: all)
 } _sapp_ios_t;
 
 #endif // _SAPP_IOS
