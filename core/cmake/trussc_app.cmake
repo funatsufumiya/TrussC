@@ -278,7 +278,13 @@ endif()
         elseif(WIN32)
             # Windows: Guest links Host's import library (set below)
         else()
-            target_link_options(guest PRIVATE -Wl,--unresolved-symbols=ignore-in-shared-libs)
+            # Linux: analogue of macOS `-undefined dynamic_lookup`. The guest
+            # deliberately leaves TrussC/sokol symbols unresolved at link time;
+            # dlopen(..., RTLD_NOW) resolves them against the Host's dynamic
+            # symbol table (Host is linked with -rdynamic and --whole-archive
+            # TrussC). `ignore-in-shared-libs` is NOT enough here because the
+            # symbols live in a static archive on the Host, not in a .so.
+            target_link_options(guest PRIVATE -Wl,--unresolved-symbols=ignore-all)
         endif()
         # Guest output directory
         set_target_properties(guest PROPERTIES
