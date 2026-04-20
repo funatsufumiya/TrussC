@@ -2501,6 +2501,28 @@ categories:
         sketch: false
         snippet: "setOrientation(${1:Orientation::All})"
 
+      - name: setKeepScreenOn
+        return: "void"
+        signatures:
+          - params: "bool enabled"
+            params_simple: "enabled"
+        description: "Prevent display sleep / auto-lock while the app is running. Supported: Android, iOS, macOS, Windows. Linux / Web: no-op"
+        description_ja: "アプリ実行中に画面スリープ/自動ロックを抑止。対応: Android, iOS, macOS, Windows。Linux / Web は no-op"
+        description_ko: "앱 실행 중 화면 절전/자동 잠금을 방지. 지원: Android, iOS, macOS, Windows. Linux / Web는 동작하지 않음"
+        sketch: false
+        snippet: "setKeepScreenOn(${1:true})"
+
+      - name: getKeepScreenOn
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check whether keep-screen-on is currently enabled"
+        description_ja: "現在 keep-screen-on が有効かどうかを取得"
+        description_ko: "현재 keep-screen-on이 활성화되어 있는지 확인"
+        sketch: false
+        snippet: "getKeepScreenOn()"
+
       - name: setIndependentFps
         return: "void"
         signatures:
