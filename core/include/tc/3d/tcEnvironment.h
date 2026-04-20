@@ -67,11 +67,12 @@ public:
             return false;
         }
 
-        // 1. Upload equirect HDR as a 2D texture.
+        // Upload equirect HDR as a 2D texture with REPEAT wrap on U axis
+        // for seamless horizontal wrapping at the phi = ±pi boundary.
         Texture equirect;
+        equirect.setWrapU(TextureWrap::Repeat);
         equirect.allocate(src, TextureUsage::Immutable);
 
-        // 2. Allocate intermediate env cubemap and bake all three outputs.
         return bakeFromEquirectTexture(equirect);
     }
 
@@ -96,9 +97,9 @@ public:
                          1.0f);
         };
 
-        const Color skyTop    (0.15f, 0.30f, 0.75f);
-        const Color skyHoriz  (0.70f, 0.80f, 0.92f);
-        const Color ground    (0.08f, 0.06f, 0.05f);
+        const Color skyTop    (0.25f, 0.50f, 1.30f);
+        const Color skyHoriz  (1.10f, 1.30f, 1.55f);
+        const Color ground    (0.12f, 0.10f, 0.08f);
         const Color sunColor  (18.0f, 15.0f, 11.0f);
 
         for (int y = 0; y < H; ++y) {
@@ -212,6 +213,7 @@ private:
             pd.depth.pixel_format = SG_PIXELFORMAT_NONE;  // no depth attachment
             pd.colors[0].pixel_format = colorFmt;
             pd.colors[0].blend.enabled = false;
+            pd.sample_count = 1;  // オフスクリーンベイク用（MSAA不要）
             pd.label = "tc_ibl_bake_pipeline";
             return sg_make_pipeline(&pd);
         };
@@ -273,8 +275,10 @@ private:
     }
 
     // -------------------------------------------------------------------------
-    // Actual bake: equirect → cube → irradiance / prefilter / brdfLut
+    // Actual bake: equirect 2D → irradiance / prefilter / brdfLut
     // -------------------------------------------------------------------------
+    // Irradiance and prefilter shaders sample the equirectangular 2D source
+    // directly (not an intermediate cubemap) to avoid face-boundary seams.
     bool bakeFromEquirectTexture(const Texture& equirect) {
         ensureBakeResources();
         BakeResources& r = bake();
@@ -286,28 +290,7 @@ private:
             suspendSwapchainPass();
         }
 
-        // Intermediate environment cubemap (RGBA16F, 1 mip).
-        Texture envCube;
-        envCube.allocateCubemap(kEnvCubeSize, TextureFormat::RGBA16F,
-                                TextureUsage::RenderTarget, 1);
-
-        // 1. equirect → envCube (6 faces)
-        for (int face = 0; face < 6; ++face) {
-            tc_ibl_equirect_params_t params = {};
-            params.faceIdx[0] = static_cast<float>(face);
-
-            sg_bindings bind = {};
-            bind.vertex_buffers[0] = r.quadVbuf;
-            bind.views[VIEW_tc_ibl_equirectTex] = equirect.getView();
-            bind.samplers[SMP_tc_ibl_equirectSmp] = equirect.getSampler();
-
-            runFullscreenPass(envCube.getCubemapFaceAttachmentView(face, 0),
-                              kEnvCubeSize, kEnvCubeSize,
-                              r.eqPipe, bind,
-                              UB_tc_ibl_equirect_params, &params, sizeof(params));
-        }
-
-        // 2. envCube → irradianceMap (6 faces, 1 mip)
+        // 1. equirect → irradianceMap (6 faces, 1 mip)
         irradiance_.allocateCubemap(kIrradianceSize, TextureFormat::RGBA16F,
                                     TextureUsage::RenderTarget, 1);
         for (int face = 0; face < 6; ++face) {
@@ -316,8 +299,8 @@ private:
 
             sg_bindings bind = {};
             bind.vertex_buffers[0] = r.quadVbuf;
-            bind.views[VIEW_tc_ibl_envTex] = envCube.getView();
-            bind.samplers[SMP_tc_ibl_envSmp] = r.linearSampler;
+            bind.views[VIEW_tc_ibl_equirectTex] = equirect.getView();
+            bind.samplers[SMP_tc_ibl_equirectSmp] = equirect.getSampler();
 
             runFullscreenPass(irradiance_.getCubemapFaceAttachmentView(face, 0),
                               kIrradianceSize, kIrradianceSize,
@@ -325,7 +308,7 @@ private:
                               UB_tc_ibl_irradiance_params, &params, sizeof(params));
         }
 
-        // 3. envCube → prefilterMap (6 faces × kPrefilterMipLevels mips)
+        // 2. equirect → prefilterMap (6 faces × kPrefilterMipLevels mips)
         prefilter_.allocateCubemap(kPrefilterSize, TextureFormat::RGBA16F,
                                    TextureUsage::RenderTarget, kPrefilterMipLevels);
         for (int mip = 0; mip < kPrefilterMipLevels; ++mip) {
@@ -340,8 +323,8 @@ private:
 
                 sg_bindings bind = {};
                 bind.vertex_buffers[0] = r.quadVbuf;
-                bind.views[VIEW_tc_ibl_envTex] = envCube.getView();
-                bind.samplers[SMP_tc_ibl_envSmp] = r.linearSampler;
+                bind.views[VIEW_tc_ibl_equirectTex] = equirect.getView();
+                bind.samplers[SMP_tc_ibl_equirectSmp] = equirect.getSampler();
 
                 runFullscreenPass(prefilter_.getCubemapFaceAttachmentView(face, mip),
                                   mipSize, mipSize,
@@ -350,7 +333,7 @@ private:
             }
         }
 
-        // 4. BRDF LUT (2D, RG16F, no inputs)
+        // 3. BRDF LUT (2D, RG16F, no inputs)
         brdfLut_.allocate(kBrdfLutSize, kBrdfLutSize, TextureFormat::RG16F,
                           TextureUsage::RenderTarget, 1);
         {
@@ -361,8 +344,6 @@ private:
                               r.lutPipe, bind,
                               0, nullptr, 0);
         }
-
-        // envCube is a temporary; its destructor releases it.
 
         if (wasInSwapchain) {
             resumeSwapchainPass();

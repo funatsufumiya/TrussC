@@ -392,4 +392,71 @@ void clear(float r, float g, float b, float a /* = 1.0f */) {
     }
 }
 
+// ---------------------------------------------------------------------------
+// パス管理関数（non-inline: Hot Reload時にHost/Guest間で同じ状態を参照するため）
+// ---------------------------------------------------------------------------
+void ensureSwapchainPass() {
+    if (!internal::inSwapchainPass && !internal::inFboPass) {
+        sg_pass pass = {};
+        pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
+        pass.action.colors[0].clear_value = internal::swapchainClearValue;
+        pass.action.depth.load_action = SG_LOADACTION_CLEAR;
+        pass.action.depth.clear_value = 1.0f;
+        pass.swapchain = sglue_swapchain();
+        sg_begin_pass(&pass);
+        internal::inSwapchainPass = true;
+    }
+}
+
+void present() {
+    if (headless::isActive()) return;
+
+    ensureSwapchainPass();
+
+    flushDeferredShaderDraws();
+
+    events().onRender.notify();
+
+    sgl_error_t err = sgl_error();
+    if (err.vertices_full || err.commands_full) {
+        int newVerts = internal::sglMaxVertices * 4;
+        int newCmds = internal::sglMaxCommands * 4;
+        if (newVerts > internal::sglPendingResize) {
+            internal::sglPendingResize = newVerts;
+            logNotice("sokol_gl") << "Vertex buffer overflow detected ("
+                << internal::sglMaxVertices << " vertices, "
+                << internal::sglMaxCommands << " commands). "
+                << "Will resize to " << newVerts << " next frame.";
+        }
+    }
+
+    sg_end_pass();
+    internal::inSwapchainPass = false;
+    sg_commit();
+}
+
+bool isInSwapchainPass() {
+    return internal::inSwapchainPass;
+}
+
+void suspendSwapchainPass() {
+    if (internal::inSwapchainPass) {
+        sg_end_pass();
+        internal::inSwapchainPass = false;
+    }
+}
+
+void resumeSwapchainPass() {
+    if (!internal::inSwapchainPass) {
+        sg_pass pass = {};
+        pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
+        pass.action.colors[0].clear_value = internal::swapchainClearValue;
+        pass.action.depth.load_action = SG_LOADACTION_CLEAR;
+        pass.action.depth.clear_value = 1.0f;
+        pass.swapchain = sglue_swapchain();
+        sg_begin_pass(&pass);
+        internal::inSwapchainPass = true;
+    }
+}
+
 } // namespace trussc

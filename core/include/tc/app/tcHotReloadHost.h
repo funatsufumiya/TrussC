@@ -56,16 +56,31 @@ struct GuestLibrary {
     string loadedPath;  // actual path loaded (may be a temp copy on Windows)
 
     bool load(const string& path) {
-#ifdef _WIN32
-        // Windows: can't overwrite a loaded DLL, so copy to a temp name first
+        // Always load from a unique temp path. Without this, the OS dynamic
+        // loader deduplicates by pathname/inode and may return the already-
+        // loaded handle on subsequent dlopen() calls:
+        //   - Windows:  can't overwrite a loaded DLL at all.
+        //   - Linux:    glibc caches loaded objects; if C++ statics/typeinfo
+        //               keep the refcount above 0, dlclose() doesn't actually
+        //               unload, so a later dlopen(samepath) silently hands
+        //               back the OLD code.
+        //   - macOS:    dyld usually picks up the replacement, but copying to
+        //               a unique path makes behavior identical across OSes.
         static int loadCounter = 0;
-        string tempPath = path + "." + std::to_string(loadCounter++) + ".tmp.dll";
+#ifdef _WIN32
+        const char* ext = ".tmp.dll";
+#else
+        const char* ext = ".tmp.so";
+#endif
+        string tempPath = path + "." + std::to_string(loadCounter++) + ext;
         try { fs::copy_file(path, tempPath, fs::copy_options::overwrite_existing); }
-        catch (...) { cerr << "[HotReload] Failed to copy DLL to " << tempPath << "\n"; return false; }
+        catch (...) { cerr << "[HotReload] Failed to copy library to " << tempPath << "\n"; return false; }
 
+#ifdef _WIN32
         handle = LoadLibraryA(tempPath.c_str());
         if (!handle) {
             cerr << "[HotReload] LoadLibrary failed (error " << GetLastError() << ")\n";
+            try { fs::remove(tempPath); } catch (...) {}
             return false;
         }
         createApp = (CreateAppFn)GetProcAddress(handle, "tcHotReloadCreateApp");
@@ -74,13 +89,14 @@ struct GuestLibrary {
             cerr << "[HotReload] GetProcAddress failed\n";
             FreeLibrary(handle);
             handle = nullptr;
+            try { fs::remove(tempPath); } catch (...) {}
             return false;
         }
-        loadedPath = tempPath;
 #else
-        handle = dlopen(path.c_str(), RTLD_NOW);
+        handle = dlopen(tempPath.c_str(), RTLD_NOW | RTLD_LOCAL);
         if (!handle) {
             cerr << "[HotReload] dlopen failed: " << dlerror() << "\n";
+            try { fs::remove(tempPath); } catch (...) {}
             return false;
         }
         createApp = (CreateAppFn)dlsym(handle, "tcHotReloadCreateApp");
@@ -89,10 +105,11 @@ struct GuestLibrary {
             cerr << "[HotReload] dlsym failed: " << dlerror() << "\n";
             dlclose(handle);
             handle = nullptr;
+            try { fs::remove(tempPath); } catch (...) {}
             return false;
         }
-        loadedPath = path;
 #endif
+        loadedPath = tempPath;
         return true;
     }
 
@@ -116,12 +133,14 @@ struct GuestLibrary {
         if (handle) {
 #ifdef _WIN32
             FreeLibrary(handle);
-            // Delete the temp copy
-            try { fs::remove(loadedPath); } catch (...) {}
 #else
             dlclose(handle);
 #endif
             handle = nullptr;
+            // Remove the per-load temp copy. On Linux this is safe even if
+            // dlclose didn't fully unload: unlink just drops the directory
+            // entry — the mmap'd pages stay alive until the OS releases them.
+            try { fs::remove(loadedPath); } catch (...) {}
         }
         createApp = nullptr;
         destroyApp = nullptr;
@@ -251,10 +270,19 @@ struct Host {
         }
 
         // Guest library path
+        // Ninja: buildDir直下に出力。VS generator: Release/等のサブディレクトリ。
 #ifdef __APPLE__
         guestLibPath = buildDir + "/libguest.dylib";
 #elif defined(_WIN32)
-        guestLibPath = buildDir + "/Release/guest.dll";
+        // Ninja (CMakePresets.json) ではサブディレクトリなし。
+        // Visual Studio multi-config generator は Release/ や Debug/ を作る。
+        if (fs::exists(buildDir + "/guest.dll")) {
+            guestLibPath = buildDir + "/guest.dll";
+        } else if (fs::exists(buildDir + "/Debug/guest.dll")) {
+            guestLibPath = buildDir + "/Debug/guest.dll";
+        } else {
+            guestLibPath = buildDir + "/Release/guest.dll";
+        }
 #else
         guestLibPath = buildDir + "/libguest.so";
 #endif
@@ -304,11 +332,13 @@ struct Host {
         // overwriting a loaded dylib is safe (the old inode stays in memory).
         // If the build fails, the old App keeps running undisturbed.
 
+        auto tStart = Clock::now();
         if (!rebuildGuest()) {
             logWarning() << "[HotReload] Build failed — keeping current version";
             watcher.markBuilt();  // don't re-trigger on the same mtime
             return false;
         }
+        auto tBuildDone = Clock::now();
 
         // Build succeeded — now swap: destroy old App, unload old library,
         // load the new one.
@@ -329,7 +359,16 @@ struct Host {
         watcher.markBuilt();
         watcher.rescan(srcDir);
 
-        logNotice("HotReload") << "Reloaded (#" << reloadCount << ")";
+        // Report build vs swap split — useful for diagnosing where time goes
+        // (e.g. when iterating on PCH or linker flags).
+        using ms = std::chrono::milliseconds;
+        auto tEnd = Clock::now();
+        long buildMs = std::chrono::duration_cast<ms>(tBuildDone - tStart).count();
+        long swapMs  = std::chrono::duration_cast<ms>(tEnd - tBuildDone).count();
+        long totalMs = std::chrono::duration_cast<ms>(tEnd - tStart).count();
+        logNotice("HotReload") << "Reloaded (#" << reloadCount << ") — "
+                               << totalMs << " ms total (build " << buildMs
+                               << " ms + swap " << swapMs << " ms)";
         return true;
     }
 

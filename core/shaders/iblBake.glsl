@@ -10,6 +10,10 @@
 //   3. prefilter        - GGX importance-sampled specular convolution per mip
 //   4. brdf_lut         - split-sum specular BRDF LUT (2D, not a cube)
 //
+// Programs 2 and 3 sample the equirectangular 2D source DIRECTLY (not the
+// intermediate cubemap) to avoid cubemap face-boundary seam artifacts. This
+// ensures that the output cubemap texels at face edges are naturally continuous.
+//
 // All programs share a common VS that draws a fullscreen quad. The caller is
 // responsible for: (a) binding the appropriate target attachment (cube face +
 // mip, or 2D for brdf_lut) before sg_begin_pass, and (b) supplying the right
@@ -21,19 +25,39 @@ in vec2 position;
 out vec2 v_uv;
 
 void main() {
-    v_uv = position * 0.5 + 0.5;
+    // v_uv must match the texture's V coordinate where this fragment is
+    // written, so that faceUvToDir(face, v_uv) produces the direction the
+    // GPU expects when sampling the cubemap at this texel later. The
+    // NDC-Y vs texture-V relationship differs by backend:
+    //   Metal / D3D11 / WGPU: texture V=0 is at top, NDC Y=+1 is at top.
+    //                          v_uv.y = 0.5 - position.y * 0.5
+    //   GL / GLES:             texture V=0 is at bottom, NDC Y=+1 is at top.
+    //                          v_uv.y = position.y * 0.5 + 0.5
+    // Without this distinction, side faces (+/-X, +/-Z) come out Y-flipped
+    // and cubemap face boundaries become visible as seam artifacts.
+    v_uv.x = position.x * 0.5 + 0.5;
+    #if defined(SOKOL_GLSL)
+        v_uv.y = position.y * 0.5 + 0.5;
+    #else
+        v_uv.y = 0.5 - position.y * 0.5;
+    #endif
     gl_Position = vec4(position, 0.0, 1.0);
 }
 @end
 
 // =============================================================================
-// Shared helpers (pasted into each fragment shader because sokol-shdc does not
-// support #include or cross-stage helper blocks).
+// Shared helpers
 // =============================================================================
-// // vec3 faceUvToDir(int face, vec2 uv) { ... }
-// // Returns a world-space direction for the given cube face and in-face uv
-// // in [0,1]^2, using the GL/sokol cubemap face conventions:
-// //   0:+X  1:-X  2:+Y  3:-Y  4:+Z  5:-Z
+
+// --- faceUvToDir: cubemap face UV → world-space direction --------------------
+// Returns a world-space direction for the given cube face and in-face uv
+// in [0,1]^2, using the GL/sokol cubemap face conventions:
+//   0:+X  1:-X  2:+Y  3:-Y  4:+Z  5:-Z
+
+// --- dirToEquirectUv: world-space direction → equirect UV --------------------
+// Maps a normalized 3D direction to [0,1]^2 UV on an equirectangular image.
+// Matches the inverse of the equirect_to_cube mapping.
+
 // =============================================================================
 
 // -----------------------------------------------------------------------------
@@ -77,11 +101,11 @@ void main() {
 @program equirect_to_cube vs_bake fs_equirect_to_cube
 
 // -----------------------------------------------------------------------------
-// 2. Irradiance convolution (diffuse IBL)
+// 2. Irradiance convolution (diffuse IBL) — samples equirect 2D directly
 // -----------------------------------------------------------------------------
 @fs fs_irradiance
-layout(binding=0) uniform textureCube envTex;
-layout(binding=0) uniform sampler envSmp;
+layout(binding=0) uniform texture2D equirectTex;
+layout(binding=0) uniform sampler equirectSmp;
 
 layout(binding=0) uniform irradiance_params {
     vec4 faceIdx;  // x = face index
@@ -98,6 +122,13 @@ vec3 faceUvToDir(int f, vec2 uv) {
     if (f == 3) return normalize(vec3( n.x, -1.0, -n.y));
     if (f == 4) return normalize(vec3( n.x, -n.y,  1.0));
     return              normalize(vec3(-n.x, -n.y, -1.0));
+}
+
+vec2 dirToEquirectUv(vec3 dir) {
+    float phi = atan(dir.z, dir.x);
+    float theta = asin(clamp(dir.y, -1.0, 1.0));
+    return vec2(phi * 0.15915494 + 0.5,
+                0.5 - theta * 0.31830989);
 }
 
 void main() {
@@ -125,7 +156,8 @@ void main() {
                                 cos(theta));
             // Tangent → world
             vec3 sampleDir = tangent.x * right + tangent.y * up + tangent.z * N;
-            irradiance += texture(samplerCube(envTex, envSmp), sampleDir).rgb
+            irradiance += texture(sampler2D(equirectTex, equirectSmp),
+                                  dirToEquirectUv(sampleDir)).rgb
                         * cos(theta) * sin(theta);
             sampleCount += 1.0;
         }
@@ -137,11 +169,11 @@ void main() {
 @program irradiance vs_bake fs_irradiance
 
 // -----------------------------------------------------------------------------
-// 3. Prefiltered environment map (specular IBL, one mip per roughness)
+// 3. Prefiltered environment map — samples equirect 2D directly
 // -----------------------------------------------------------------------------
 @fs fs_prefilter
-layout(binding=0) uniform textureCube envTex;
-layout(binding=0) uniform sampler envSmp;
+layout(binding=0) uniform texture2D equirectTex;
+layout(binding=0) uniform sampler equirectSmp;
 
 layout(binding=0) uniform prefilter_params {
     vec4 faceIdx;  // x = face index
@@ -162,6 +194,13 @@ vec3 faceUvToDir(int f, vec2 uv) {
     if (f == 3) return normalize(vec3( n.x, -1.0, -n.y));
     if (f == 4) return normalize(vec3( n.x, -n.y,  1.0));
     return              normalize(vec3(-n.x, -n.y, -1.0));
+}
+
+vec2 dirToEquirectUv(vec3 dir) {
+    float phi = atan(dir.z, dir.x);
+    float theta = asin(clamp(dir.y, -1.0, 1.0));
+    return vec2(phi * 0.15915494 + 0.5,
+                0.5 - theta * 0.31830989);
 }
 
 float radicalInverseVdC(uint bits) {
@@ -205,7 +244,8 @@ void main() {
         vec3 L = normalize(2.0 * dot(V, H) * H - V);
         float NdotL = max(dot(N, L), 0.0);
         if (NdotL > 0.0) {
-            prefilteredColor += texture(samplerCube(envTex, envSmp), L).rgb * NdotL;
+            prefilteredColor += texture(sampler2D(equirectTex, equirectSmp),
+                                        dirToEquirectUv(L)).rgb * NdotL;
             totalWeight += NdotL;
         }
     }

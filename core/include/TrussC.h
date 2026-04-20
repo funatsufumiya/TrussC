@@ -312,6 +312,9 @@ namespace internal {
 
     // Color pixel format of the current FBO pass (for PBR pipeline format matching)
     inline sg_pixel_format currentFboColorFormat = SG_PIXELFORMAT_RGBA8;
+
+    // MSAAサンプルカウント（FBOパス中のPBRパイプライン用）
+    inline int currentFboSampleCount = 1;
 }
 
 // ---------------------------------------------------------------------------
@@ -387,87 +390,24 @@ inline void clear(const Color& c) {
 // Forward declaration (implemented in tcShader.h after Shader class)
 void flushDeferredShaderDraws();
 
+// パス管理関数（non-inline: Hot Reload時にHost/Guest間で同じグローバル状態を参照するため）
+// 実装は tc/app/tcGlobal.cpp
+
 // Ensure swapchain pass is active (starts if needed)
 // Safe to call multiple times — only starts once.
-// Used by FullscreenShader/LutShader which call sg_draw() directly.
-inline void ensureSwapchainPass() {
-    if (!internal::inSwapchainPass && !internal::inFboPass) {
-        sg_pass pass = {};
-        pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
-        pass.action.colors[0].clear_value = internal::swapchainClearValue;
-        pass.action.depth.load_action = SG_LOADACTION_CLEAR;
-        pass.action.depth.clear_value = 1.0f;
-        pass.swapchain = sglue_swapchain();
-        sg_begin_pass(&pass);
-        internal::inSwapchainPass = true;
-    }
-}
+void ensureSwapchainPass();
 
 // End pass and commit (call at end of draw)
-inline void present() {
-    // Skip in headless mode (no graphics context)
-    if (headless::isActive()) return;
-
-    // Start swapchain pass if not yet started
-    ensureSwapchainPass();
-
-    // Flush sokol_gl layers and deferred shader draws
-    flushDeferredShaderDraws();
-
-    // Before present (after sokol_gl flush, render pass still active)
-    events().onRender.notify();
-
-    // Check for vertex buffer overflow before sg_commit resets errors
-    sgl_error_t err = sgl_error();
-    if (err.vertices_full || err.commands_full) {
-        // Schedule resize for next frame (4x to minimize repeated resizes)
-        int newVerts = internal::sglMaxVertices * 4;
-        int newCmds = internal::sglMaxCommands * 4;
-        if (newVerts > internal::sglPendingResize) {
-            internal::sglPendingResize = newVerts;
-            logNotice("sokol_gl") << "Vertex buffer overflow detected ("
-                << internal::sglMaxVertices << " vertices, "
-                << internal::sglMaxCommands << " commands). "
-                << "Will resize to " << newVerts << " next frame.";
-        }
-    }
-
-    sg_end_pass();
-    internal::inSwapchainPass = false;
-    sg_commit();
-}
+void present();
 
 // Get swapchain pass state (for FBO)
-inline bool isInSwapchainPass() {
-    return internal::inSwapchainPass;
-}
+bool isInSwapchainPass();
 
 // Suspend swapchain pass (for FBO begin/end during draw)
-// The pass is simply ended. All sgl commands (pre- and post-FBO) remain in the
-// command buffer and will be drawn together by present() after resume.
-inline void suspendSwapchainPass() {
-    if (internal::inSwapchainPass) {
-        sg_end_pass();
-        internal::inSwapchainPass = false;
-    }
-}
+void suspendSwapchainPass();
 
 // Resume swapchain pass (for FBO)
-// Start a fresh pass with CLEAR action. present() → sgl_draw_layer() will
-// redraw ALL sgl commands (including pre-suspend ones), so no content is lost.
-// This avoids LOADACTION_LOAD on Metal swapchain drawables which can flicker.
-inline void resumeSwapchainPass() {
-    if (!internal::inSwapchainPass) {
-        sg_pass pass = {};
-        pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
-        pass.action.colors[0].clear_value = internal::swapchainClearValue;
-        pass.action.depth.load_action = SG_LOADACTION_CLEAR;
-        pass.action.depth.clear_value = 1.0f;
-        pass.swapchain = sglue_swapchain();
-        sg_begin_pass(&pass);
-        internal::inSwapchainPass = true;
-    }
-}
+void resumeSwapchainPass();
 
 // ---------------------------------------------------------------------------
 // Color settings (delegated to RenderContext)

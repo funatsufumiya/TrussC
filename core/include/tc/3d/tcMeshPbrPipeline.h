@@ -41,9 +41,10 @@ public:
         initialized_ = true;
     }
 
-    // Get or create a pipeline for the given color pixel format.
-    sg_pipeline getPipeline(sg_pixel_format colorFormat) {
-        int key = static_cast<int>(colorFormat);
+    // Get or create a pipeline for the given color pixel format and sample count.
+    sg_pipeline getPipeline(sg_pixel_format colorFormat, int sampleCount) {
+        // キャッシュキー: colorFormat(下位16bit) + sampleCount(上位16bit)
+        int key = static_cast<int>(colorFormat) | (sampleCount << 16);
         auto it = pipelineCache_.find(key);
         if (it != pipelineCache_.end()) return it->second;
 
@@ -63,6 +64,7 @@ public:
         pd.colors[0].pixel_format = colorFormat;
         pd.colors[0].blend.enabled = false;
 
+        pd.sample_count = sampleCount;
         pd.index_type = SG_INDEXTYPE_UINT32;
         pd.label = "tc_mesh_pbr_pipeline";
 
@@ -76,12 +78,18 @@ public:
     void drawMesh(const Mesh& mesh) {
         ensureInit();
 
-        // Determine color format for current render target.
-        // _SG_PIXELFORMAT_DEFAULT (0) = use sokol environment default (swapchain).
-        // Note: SG_PIXELFORMAT_NONE (1) means "no color attachment" — don't use it.
-        sg_pixel_format colorFmt = internal::inFboPass
-            ? internal::currentFboColorFormat
-            : _SG_PIXELFORMAT_DEFAULT;
+        // 現在のレンダーターゲットのカラーフォーマットとサンプルカウントを取得
+        // _SG_PIXELFORMAT_DEFAULT (0) = sokol環境デフォルト（スワップチェーン）
+        // SG_PIXELFORMAT_NONE (1) は「カラーアタッチメントなし」なので使わない
+        sg_pixel_format colorFmt;
+        int sampleCount;
+        if (internal::inFboPass) {
+            colorFmt = internal::currentFboColorFormat;
+            sampleCount = internal::currentFboSampleCount;
+        } else {
+            colorFmt = _SG_PIXELFORMAT_DEFAULT;
+            sampleCount = sapp_sample_count();
+        }
 
         // Ensure we are inside a render pass
         if (!internal::inFboPass) {
@@ -93,7 +101,7 @@ public:
         // where the first drawBox should appear beneath the PBR mesh.
         sgl_draw();
 
-        sg_apply_pipeline(getPipeline(colorFmt));
+        sg_apply_pipeline(getPipeline(colorFmt, sampleCount));
 
         // --- Bindings -------------------------------------------------------
         sg_bindings bind = {};
@@ -352,38 +360,32 @@ private:
         if (fallbackInitialized_) return;
 
         // 1x1x6 RGBA8 cubemap, all zeros
+        // D3D11はdynamic cubemapを作れない（ArraySize=1制限）のでimmutableで作成
+        uint8_t zero[4 * 6] = {0};
         sg_image_desc cube_desc = {};
         cube_desc.type = SG_IMAGETYPE_CUBE;
         cube_desc.width = 1;
         cube_desc.height = 1;
         cube_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
-        cube_desc.usage.dynamic_update = true;
+        cube_desc.data.mip_levels[0].ptr = zero;
+        cube_desc.data.mip_levels[0].size = sizeof(zero);
         cube_desc.label = "tc_pbr_fallback_cube";
         fallbackCube_ = sg_make_image(&cube_desc);
-        // Zero-init all 6 faces
-        uint8_t zero[4 * 6] = {0};
-        sg_image_data cube_data = {};
-        cube_data.mip_levels[0].ptr = zero;
-        cube_data.mip_levels[0].size = sizeof(zero);
-        sg_update_image(fallbackCube_, &cube_data);
         sg_view_desc cube_view_desc = {};
         cube_view_desc.texture.image = fallbackCube_;
         fallbackCubeView_ = sg_make_view(&cube_view_desc);
 
         // 1x1 RG16F 2D texture
+        uint16_t zero2d[2] = {0, 0};
         sg_image_desc tex_desc = {};
         tex_desc.type = SG_IMAGETYPE_2D;
         tex_desc.width = 1;
         tex_desc.height = 1;
         tex_desc.pixel_format = SG_PIXELFORMAT_RG16F;
-        tex_desc.usage.dynamic_update = true;
+        tex_desc.data.mip_levels[0].ptr = zero2d;
+        tex_desc.data.mip_levels[0].size = sizeof(zero2d);
         tex_desc.label = "tc_pbr_fallback_2d";
         fallback2d_ = sg_make_image(&tex_desc);
-        uint16_t zero2d[2] = {0, 0};
-        sg_image_data tex_data = {};
-        tex_data.mip_levels[0].ptr = zero2d;
-        tex_data.mip_levels[0].size = sizeof(zero2d);
-        sg_update_image(fallback2d_, &tex_data);
         sg_view_desc tex_view_desc = {};
         tex_view_desc.texture.image = fallback2d_;
         fallback2dView_ = sg_make_view(&tex_view_desc);

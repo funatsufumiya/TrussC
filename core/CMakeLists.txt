@@ -192,6 +192,15 @@ elseif(TC_PLATFORM_WINDOWS)
         NOMINMAX
         _USE_MATH_DEFINES
     )
+    # configure時のINCLUDE/LIB環境変数パスをビルドシステムに焼き込む。
+    # Ninja+MSVC環境では、cmake --build <dir>（preset経由でない）実行時に
+    # 環境変数が未設定になりヘッダやライブラリが見つからないエラーが起きるため。
+    if(DEFINED ENV{INCLUDE})
+        target_include_directories(TrussC SYSTEM PUBLIC $ENV{INCLUDE})
+    endif()
+    if(DEFINED ENV{LIB})
+        target_link_directories(TrussC PUBLIC $ENV{LIB})
+    endif()
     target_link_libraries(TrussC PUBLIC
         d3d11
         dxgi

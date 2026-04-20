@@ -5726,6 +5726,509 @@ categories:
         snippet: "draw()"
 
   # ==========================================================================
+  # Video Player
+  # ==========================================================================
+  - id: video
+    name: "Video"
+    name_ja: "ビデオ"
+    name_ko: "비디오"
+    functions:
+      - name: VideoPlayer
+        return: ""
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Create a video player"
+        description_ja: "ビデオプレイヤーを作成"
+        description_ko: "비디오 플레이어를 생성"
+        sketch: false
+        snippet: "VideoPlayer()"
+
+      - name: createVideoPlayer
+        return: "VideoPlayer@"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Create a video player (TrussSketch factory)"
+        description_ja: "ビデオプレイヤーを作成（TrussSketch用ファクトリ）"
+        description_ko: "비디오 플레이어를 생성 (TrussSketch 팩토리)"
+        sketch: true
+        snippet: "VideoPlayer@ vid = createVideoPlayer();"
+
+      - name: load
+        return: "bool"
+        signatures:
+          - params: "const string& path"
+            params_simple: "path"
+        description: "Load a video file"
+        description_ja: "ビデオファイルを読み込む"
+        description_ko: "비디오 파일을 로드"
+        sketch: true
+        snippet: "load(${1:\"video.mp4\"})"
+
+      - name: close
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Close the video and release resources"
+        description_ja: "ビデオを閉じてリソースを解放"
+        description_ko: "비디오를 닫고 리소스를 해제"
+        sketch: true
+        snippet: "close()"
+
+      - name: isLoaded
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if a video is loaded"
+        description_ja: "ビデオが読み込まれているか確認"
+        description_ko: "비디오가 로드되었는지 확인"
+        sketch: true
+        snippet: "isLoaded()"
+
+      - name: play
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Start or resume playback"
+        description_ja: "再生を開始または再開"
+        description_ko: "재생을 시작하거나 재개"
+        sketch: true
+        snippet: "play()"
+
+      - name: stop
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Stop playback and reset to beginning"
+        description_ja: "再生を停止して先頭に戻す"
+        description_ko: "재생을 중지하고 처음으로 되돌림"
+        sketch: true
+        snippet: "stop()"
+
+      - name: setPaused
+        return: "void"
+        signatures:
+          - params: "bool paused"
+            params_simple: "paused"
+        description: "Pause or resume playback"
+        description_ja: "一時停止または再開"
+        description_ko: "일시정지 또는 재개"
+        sketch: true
+        snippet: "setPaused(${1:true})"
+
+      - name: togglePause
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Toggle pause state"
+        description_ja: "一時停止を切り替え"
+        description_ko: "일시정지 상태를 전환"
+        sketch: true
+        snippet: "togglePause()"
+
+      - name: update
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Update the video frame. Call once per frame in update()"
+        description_ja: "ビデオフレームを更新。update()内で毎フレーム呼ぶ"
+        description_ko: "비디오 프레임을 업데이트. update()에서 매 프레임 호출"
+        sketch: true
+        snippet: "update()"
+
+      - name: isPlaying
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if video is currently playing (not paused)"
+        description_ja: "再生中か確認（一時停止中は false）"
+        description_ko: "현재 재생 중인지 확인 (일시정지 시 false)"
+        sketch: true
+        snippet: "isPlaying()"
+
+      - name: isPaused
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if video is paused"
+        description_ja: "一時停止中か確認"
+        description_ko: "일시정지 상태인지 확인"
+        sketch: true
+        snippet: "isPaused()"
+
+      - name: isFrameNew
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if a new frame is available since last update"
+        description_ja: "前回のupdate以降に新しいフレームがあるか確認"
+        description_ko: "마지막 업데이트 이후 새 프레임이 있는지 확인"
+        sketch: true
+        snippet: "isFrameNew()"
+
+      - name: isDone
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if playback has reached the end"
+        description_ja: "再生が末尾に達したか確認"
+        description_ko: "재생이 끝에 도달했는지 확인"
+        sketch: true
+        snippet: "isDone()"
+
+      - name: getWidth
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get video width in pixels"
+        description_ja: "ビデオの幅をピクセル単位で取得"
+        description_ko: "비디오 너비를 픽셀 단위로 가져옴"
+        sketch: true
+        snippet: "getWidth()"
+
+      - name: getHeight
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get video height in pixels"
+        description_ja: "ビデオの高さをピクセル単位で取得"
+        description_ko: "비디오 높이를 픽셀 단위로 가져옴"
+        sketch: true
+        snippet: "getHeight()"
+
+      - name: getDuration
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get total duration in seconds"
+        description_ja: "総再生時間を秒単位で取得"
+        description_ko: "전체 재생 시간을 초 단위로 가져옴"
+        sketch: true
+        snippet: "getDuration()"
+
+      - name: getPosition
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get current position (0.0 to 1.0)"
+        description_ja: "現在の再生位置を取得（0.0〜1.0）"
+        description_ko: "현재 재생 위치를 가져옴 (0.0~1.0)"
+        sketch: true
+        snippet: "getPosition()"
+
+      - name: setPosition
+        return: "void"
+        signatures:
+          - params: "float pct"
+            params_simple: "pct"
+        description: "Seek to position (0.0 to 1.0)"
+        description_ja: "指定位置にシーク（0.0〜1.0）"
+        description_ko: "지정된 위치로 이동 (0.0~1.0)"
+        sketch: true
+        snippet: "setPosition(${1:0.5})"
+
+      - name: getCurrentTime
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get current playback time in seconds"
+        description_ja: "現在の再生時間を秒単位で取得"
+        description_ko: "현재 재생 시간을 초 단위로 가져옴"
+        sketch: true
+        snippet: "getCurrentTime()"
+
+      - name: setCurrentTime
+        return: "void"
+        signatures:
+          - params: "float seconds"
+            params_simple: "seconds"
+        description: "Seek to a specific time in seconds"
+        description_ja: "指定した秒数にシーク"
+        description_ko: "지정된 시간(초)으로 이동"
+        sketch: true
+        snippet: "setCurrentTime(${1:10.0})"
+
+      - name: setVolume
+        return: "void"
+        signatures:
+          - params: "float vol"
+            params_simple: "vol"
+        description: "Set audio volume (0.0 to 1.0)"
+        description_ja: "音量を設定（0.0〜1.0）"
+        description_ko: "음량을 설정 (0.0~1.0)"
+        sketch: true
+        snippet: "setVolume(${1:0.8})"
+
+      - name: getVolume
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get current volume"
+        description_ja: "現在の音量を取得"
+        description_ko: "현재 음량을 가져옴"
+        sketch: true
+        snippet: "getVolume()"
+
+      - name: setSpeed
+        return: "void"
+        signatures:
+          - params: "float speed"
+            params_simple: "speed"
+        description: "Set playback speed (1.0 = normal, 2.0 = double speed)"
+        description_ja: "再生速度を設定（1.0=通常、2.0=2倍速）"
+        description_ko: "재생 속도를 설정 (1.0=보통, 2.0=2배속)"
+        sketch: true
+        snippet: "setSpeed(${1:1.0})"
+
+      - name: getSpeed
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get current playback speed"
+        description_ja: "現在の再生速度を取得"
+        description_ko: "현재 재생 속도를 가져옴"
+        sketch: true
+        snippet: "getSpeed()"
+
+      - name: setPan
+        return: "void"
+        signatures:
+          - params: "float pan"
+            params_simple: "pan"
+        description: "Set stereo pan (-1.0 left, 0.0 center, 1.0 right)"
+        description_ja: "ステレオパンを設定（-1.0=左、0.0=中央、1.0=右）"
+        description_ko: "스테레오 팬을 설정 (-1.0=좌, 0.0=중앙, 1.0=우)"
+        sketch: true
+        snippet: "setPan(${1:0.0})"
+
+      - name: getPan
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get current stereo pan"
+        description_ja: "現在のステレオパンを取得"
+        description_ko: "현재 스테레오 팬을 가져옴"
+        sketch: true
+        snippet: "getPan()"
+
+      - name: setLoop
+        return: "void"
+        signatures:
+          - params: "bool loop"
+            params_simple: "loop"
+        description: "Enable/disable looping"
+        description_ja: "ループ再生を設定"
+        description_ko: "반복 재생을 활성/비활성"
+        sketch: true
+        snippet: "setLoop(${1:true})"
+
+      - name: isLoop
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if looping is enabled"
+        description_ja: "ループ再生が有効か確認"
+        description_ko: "반복 재생이 활성화되었는지 확인"
+        sketch: true
+        snippet: "isLoop()"
+
+      - name: getCurrentFrame
+        return: "int"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get current frame number"
+        description_ja: "現在のフレーム番号を取得"
+        description_ko: "현재 프레임 번호를 가져옴"
+        sketch: true
+        snippet: "getCurrentFrame()"
+
+      - name: getTotalFrames
+        return: "int"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get total number of frames"
+        description_ja: "総フレーム数を取得"
+        description_ko: "전체 프레임 수를 가져옴"
+        sketch: true
+        snippet: "getTotalFrames()"
+
+      - name: setFrame
+        return: "void"
+        signatures:
+          - params: "int frame"
+            params_simple: "frame"
+        description: "Seek to a specific frame number"
+        description_ja: "指定フレームにシーク"
+        description_ko: "지정된 프레임으로 이동"
+        sketch: true
+        snippet: "setFrame(${1:0})"
+
+      - name: nextFrame
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Advance to the next frame"
+        description_ja: "次のフレームに進む"
+        description_ko: "다음 프레임으로 이동"
+        sketch: true
+        snippet: "nextFrame()"
+
+      - name: previousFrame
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Go back to the previous frame"
+        description_ja: "前のフレームに戻る"
+        description_ko: "이전 프레임으로 이동"
+        sketch: true
+        snippet: "previousFrame()"
+
+      - name: firstFrame
+        return: "void"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Go to the first frame"
+        description_ja: "最初のフレームに移動"
+        description_ko: "첫 프레임으로 이동"
+        sketch: true
+        snippet: "firstFrame()"
+
+      - name: setGammaCorrection
+        return: "void"
+        signatures:
+          - params: "float gamma"
+            params_simple: "gamma"
+        description: "Set gamma correction (1.0 = none). Use ~0.45 to brighten on platforms with dark output (e.g. macOS AVFoundation)"
+        description_ja: "ガンマ補正を設定（1.0=補正なし）。macOS等で暗くなる場合に~0.45で明るくする"
+        description_ko: "감마 보정을 설정 (1.0=보정 없음). macOS 등에서 어둡게 나오면 ~0.45로 밝게"
+        sketch: true
+        snippet: "setGammaCorrection(${1:1.0})"
+
+      - name: getGammaCorrection
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get current gamma correction value"
+        description_ja: "現在のガンマ補正値を取得"
+        description_ko: "현재 감마 보정 값을 가져옴"
+        sketch: true
+        snippet: "getGammaCorrection()"
+
+      - name: setUseHwAccel
+        return: "void"
+        signatures:
+          - params: "bool enable"
+            params_simple: "enable"
+        description: "Enable/disable hardware decoding. Must be called before load(). Default: true. When enabled, the player probes available HW backends (VAAPI, V4L2M2M, CUDA, etc.) and falls back to software if none are available. Currently affects the Linux backend only."
+        description_ja: "ハードウェアデコードの有効/無効。load()の前に呼ぶ。デフォルト: true。有効時はHWバックエンド（VAAPI, V4L2M2M, CUDA等）を自動検出し、なければソフトウェアにフォールバック。現在Linuxのみ対応"
+        description_ko: "하드웨어 디코딩 활성/비활성. load() 전에 호출. 기본값: true. 활성화 시 HW 백엔드(VAAPI, V4L2M2M, CUDA 등)를 자동 탐색하고, 없으면 소프트웨어로 폴백. 현재 Linux만 지원"
+        sketch: true
+        snippet: "setUseHwAccel(${1:true})"
+
+      - name: getUseHwAccel
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get HW accel preference (not the actual backend — use isUsingHwAccel() for that)"
+        description_ja: "HWアクセル設定を取得（実際のバックエンドはisUsingHwAccel()で確認）"
+        description_ko: "HW 가속 설정을 가져옴 (실제 백엔드는 isUsingHwAccel()로 확인)"
+        sketch: true
+        snippet: "getUseHwAccel()"
+
+      - name: isUsingHwAccel
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if hardware decoding is currently active (after load)"
+        description_ja: "ハードウェアデコードが現在有効か確認（load後に使用）"
+        description_ko: "하드웨어 디코딩이 현재 활성 상태인지 확인 (load 후 사용)"
+        sketch: true
+        snippet: "isUsingHwAccel()"
+
+      - name: getHwAccelName
+        return: "string"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get the name of the active decode backend. Returns 'vaapi', 'v4l2m2m', 'cuda', 'videotoolbox', 'mediafoundation', 'software', or 'none'"
+        description_ja: "使用中のデコードバックエンド名を取得。'vaapi', 'v4l2m2m', 'cuda', 'videotoolbox', 'mediafoundation', 'software', 'none' のいずれか"
+        description_ko: "사용 중인 디코드 백엔드 이름을 가져옴. 'vaapi', 'v4l2m2m', 'cuda', 'videotoolbox', 'mediafoundation', 'software', 'none' 중 하나"
+        sketch: true
+        snippet: "getHwAccelName()"
+
+      - name: setResyncThreshold
+        return: "void"
+        signatures:
+          - params: "float seconds"
+            params_simple: "seconds"
+        description: "Set the maximum video/audio drift before hard re-sync. When drift exceeds this threshold, video seeks to match audio position instead of catching up frame-by-frame. Set to 0 to disable. Default: 0.5s. Primarily affects Linux (FFmpeg) backend."
+        description_ja: "映像/音声のズレが許容値を超えた場合にハードリシンクする閾値を設定。ズレがこの値を超えるとフレーム送りではなくシークで同期。0で無効。デフォルト: 0.5秒。主にLinux(FFmpeg)で有効"
+        description_ko: "비디오/오디오 드리프트가 임계값을 초과하면 하드 리싱크하는 값을 설정. 드리프트가 이 값을 초과하면 프레임 추적 대신 시크로 동기화. 0이면 비활성. 기본값: 0.5초. 주로 Linux(FFmpeg)에서 유효"
+        sketch: true
+        snippet: "setResyncThreshold(${1:0.5})"
+
+      - name: getResyncThreshold
+        return: "float"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Get the current resync threshold in seconds"
+        description_ja: "現在のリシンク閾値を秒単位で取得"
+        description_ko: "현재 리싱크 임계값을 초 단위로 가져옴"
+        sketch: true
+        snippet: "getResyncThreshold()"
+
+      - name: hasAudio
+        return: "bool"
+        signatures:
+          - params: ""
+            params_simple: ""
+        description: "Check if the loaded video has an audio track"
+        description_ja: "読み込んだビデオに音声トラックがあるか確認"
+        description_ko: "로드된 비디오에 오디오 트랙이 있는지 확인"
+        sketch: true
+        snippet: "hasAudio()"
+
+      - name: extractFrame
+        return: "bool"
+        signatures:
+          - params: "const string& path, Pixels& outPixels, float timeSec"
+            params_simple: "path, outPixels, timeSec"
+        description: "Extract a single frame from a video file without loading the full video. Useful for thumbnails"
+        description_ja: "ビデオファイルから1フレームを抽出（全体を読み込まずに）。サムネイル生成に便利"
+        description_ko: "비디오 파일에서 전체를 로드하지 않고 단일 프레임을 추출. 썸네일 생성에 유용"
+        sketch: false
+        snippet: "VideoPlayer::extractFrame(${1:\"video.mp4\"}, pixels, ${2:0.0})"
+
+  # ==========================================================================
   # tcxLut Addon - LUT (Color Grading)
   # ==========================================================================
   - id: addon_tcxlut
@@ -8881,6 +9384,15 @@ types:
         description_ja: "spot lightに設定（cone角度指定）"
         description_ko: "스포트 라이트로 설정 (콘 각도 지정)"
         snippet: "setSpot(${1:pos}, ${2:dir}, ${3:0.0f}, ${4:0.45f})"
+      - name: setAmbient
+        return: "void"
+        signatures:
+          - params: "const Color& c"
+          - params: "float r, float g, float b, float a"
+        description: "Set ambient light color"
+        description_ja: "ambient色を設定"
+        description_ko: "앰비언트 조명 색상을 설정"
+        snippet: "setAmbient(${1:0.1f}, ${2:0.1f}, ${3:0.1f})"
       - name: setDiffuse
         return: "void"
         signatures:
@@ -8890,6 +9402,15 @@ types:
         description_ja: "diffuse色を設定"
         description_ko: "디퓨즈 (메인) 조명 색상을 설정"
         snippet: "setDiffuse(${1:1.0f}, ${2:1.0f}, ${3:1.0f})"
+      - name: setSpecular
+        return: "void"
+        signatures:
+          - params: "const Color& c"
+          - params: "float r, float g, float b, float a"
+        description: "Set specular light color"
+        description_ja: "specular色を設定"
+        description_ko: "스펙큘러 조명 색상을 설정"
+        snippet: "setSpecular(${1:1.0f}, ${2:1.0f}, ${3:1.0f})"
       - name: setIntensity
         return: "void"
         signatures:
@@ -8954,6 +9475,22 @@ types:
         description_ja: "shadow castingを無効化"
         description_ko: "섀도우 캐스팅을 비활성화"
         snippet: "disableShadow()"
+      - name: enable
+        return: "void"
+        signatures:
+          - params: ""
+        description: "Enable this light"
+        description_ja: "このlightを有効化"
+        description_ko: "이 조명을 활성화"
+        snippet: "enable()"
+      - name: disable
+        return: "void"
+        signatures:
+          - params: ""
+        description: "Disable this light"
+        description_ja: "このlightを無効化"
+        description_ko: "이 조명을 비활성화"
+        snippet: "disable()"
       - name: setShadowBias
         return: "void"
         signatures:
@@ -8994,6 +9531,158 @@ types:
         description_ja: "light intensityを取得"
         description_ko: "조명 강도를 얻음"
         snippet: "getIntensity()"
+      - name: getAmbient
+        return: "const Color&"
+        signatures:
+          - params: ""
+        description: "Get ambient light color"
+        description_ja: "ambient色を取得"
+        description_ko: "앰비언트 조명 색상을 얻음"
+        snippet: "getAmbient()"
+      - name: getDiffuse
+        return: "const Color&"
+        signatures:
+          - params: ""
+        description: "Get diffuse (main) light color"
+        description_ja: "diffuse色を取得"
+        description_ko: "디퓨즈 (메인) 조명 색상을 얻음"
+        snippet: "getDiffuse()"
+      - name: getSpecular
+        return: "const Color&"
+        signatures:
+          - params: ""
+        description: "Get specular light color"
+        description_ja: "specular色を取得"
+        description_ko: "스펙큘러 조명 색상을 얻음"
+        snippet: "getSpecular()"
+      - name: getConstantAttenuation
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get constant attenuation factor"
+        description_ja: "constant減衰係数を取得"
+        description_ko: "상수 감쇠 계수를 얻음"
+        snippet: "getConstantAttenuation()"
+      - name: getLinearAttenuation
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get linear attenuation factor"
+        description_ja: "linear減衰係数を取得"
+        description_ko: "선형 감쇠 계수를 얻음"
+        snippet: "getLinearAttenuation()"
+      - name: getQuadraticAttenuation
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get quadratic attenuation factor"
+        description_ja: "quadratic減衰係数を取得"
+        description_ko: "이차 감쇠 계수를 얻음"
+        snippet: "getQuadraticAttenuation()"
+      - name: isEnabled
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if light is enabled"
+        description_ja: "lightが有効か確認"
+        description_ko: "조명이 활성화되었는지 확인"
+        snippet: "isEnabled()"
+      - name: isShadowEnabled
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if shadow casting is enabled"
+        description_ja: "shadow castingが有効か確認"
+        description_ko: "섀도우 캐스팅이 활성화되었는지 확인"
+        snippet: "isShadowEnabled()"
+      - name: getShadowResolution
+        return: "int"
+        signatures:
+          - params: ""
+        description: "Get shadow map resolution"
+        description_ja: "shadow map解像度を取得"
+        description_ko: "섀도우 맵 해상도를 얻음"
+        snippet: "getShadowResolution()"
+      - name: getShadowBias
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get shadow depth bias"
+        description_ja: "shadow depth biasを取得"
+        description_ko: "섀도우 뎁스 바이어스를 얻음"
+        snippet: "getShadowBias()"
+      - name: getSpotInnerCos
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get spot light inner cone cosine"
+        description_ja: "spot lightの内側cone角のcosineを取得"
+        description_ko: "스포트 라이트 내부 콘 코사인을 얻음"
+        snippet: "getSpotInnerCos()"
+      - name: getSpotOuterCos
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get spot light outer cone cosine"
+        description_ja: "spot lightの外側cone角のcosineを取得"
+        description_ko: "스포트 라이트 외부 콘 코사인을 얻음"
+        snippet: "getSpotOuterCos()"
+      - name: getProjectionTexture
+        return: "const Texture*"
+        signatures:
+          - params: ""
+        description: "Get projection texture (gobo)"
+        description_ja: "projector投影用textureを取得"
+        description_ko: "프로젝터 투영 텍스처를 얻음"
+        snippet: "getProjectionTexture()"
+      - name: hasProjectionTexture
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if a projection texture is set"
+        description_ja: "projection textureが設定されているか確認"
+        description_ko: "프로젝션 텍스처가 설정되었는지 확인"
+        snippet: "hasProjectionTexture()"
+      - name: getLensShiftX
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get projector horizontal lens shift"
+        description_ja: "projectorの水平lens shiftを取得"
+        description_ko: "프로젝터 수평 렌즈 시프트를 얻음"
+        snippet: "getLensShiftX()"
+      - name: getLensShiftY
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get projector vertical lens shift"
+        description_ja: "projectorの垂直lens shiftを取得"
+        description_ko: "프로젝터 수직 렌즈 시프트를 얻음"
+        snippet: "getLensShiftY()"
+      - name: getProjectorAspect
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get projector aspect ratio"
+        description_ja: "projectorのaspect ratioを取得"
+        description_ko: "프로젝터 종횡비를 얻음"
+        snippet: "getProjectorAspect()"
+      - name: getIesProfile
+        return: "const IesProfile*"
+        signatures:
+          - params: ""
+        description: "Get attached IES photometric profile"
+        description_ja: "IES配光profileを取得"
+        description_ko: "IES 배광 프로파일을 얻음"
+        snippet: "getIesProfile()"
+      - name: hasIesProfile
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if an IES profile is attached"
+        description_ja: "IES profileが設定されているか確認"
+        description_ko: "IES 프로파일이 설정되었는지 확인"
+        snippet: "hasIesProfile()"
 
   - name: Material
     description: "PBR material (metallic-roughness workflow, glTF 2.0 compatible)"
@@ -9097,6 +9786,134 @@ types:
         description_ja: "occlusion textureを設定"
         description_ko: "오클루전 텍스처를 설정"
         snippet: "setOcclusionTexture(${1:&tex})"
+      - name: getBaseColor
+        return: "const Color&"
+        signatures:
+          - params: ""
+        description: "Get base color (albedo)"
+        description_ja: "base color（albedo）を取得"
+        description_ko: "베이스 컬러 (알베도)를 얻음"
+        snippet: "getBaseColor()"
+      - name: getMetallic
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get metallic factor"
+        description_ja: "metallic値を取得"
+        description_ko: "메탈릭 값을 얻음"
+        snippet: "getMetallic()"
+      - name: getRoughness
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get roughness factor"
+        description_ja: "roughness値を取得"
+        description_ko: "러프니스 값을 얻음"
+        snippet: "getRoughness()"
+      - name: getAo
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get ambient occlusion factor"
+        description_ja: "ambient occlusion値を取得"
+        description_ko: "앰비언트 오클루전 값을 얻음"
+        snippet: "getAo()"
+      - name: getEmissive
+        return: "const Color&"
+        signatures:
+          - params: ""
+        description: "Get emissive color"
+        description_ja: "emissive色を取得"
+        description_ko: "이미시브 색상을 얻음"
+        snippet: "getEmissive()"
+      - name: getEmissiveStrength
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get emissive strength multiplier"
+        description_ja: "emissive強度を取得"
+        description_ko: "이미시브 강도를 얻음"
+        snippet: "getEmissiveStrength()"
+      - name: getNormalMap
+        return: "const Texture*"
+        signatures:
+          - params: ""
+        description: "Get normal map texture"
+        description_ja: "normal map textureを取得"
+        description_ko: "노멀맵 텍스처를 얻음"
+        snippet: "getNormalMap()"
+      - name: hasNormalMap
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if a normal map is set"
+        description_ja: "normal mapが設定されているか確認"
+        description_ko: "노멀맵이 설정되었는지 확인"
+        snippet: "hasNormalMap()"
+      - name: getBaseColorTexture
+        return: "const Texture*"
+        signatures:
+          - params: ""
+        description: "Get base color texture"
+        description_ja: "base color textureを取得"
+        description_ko: "베이스 컬러 텍스처를 얻음"
+        snippet: "getBaseColorTexture()"
+      - name: hasBaseColorTexture
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if a base color texture is set"
+        description_ja: "base color textureが設定されているか確認"
+        description_ko: "베이스 컬러 텍스처가 설정되었는지 확인"
+        snippet: "hasBaseColorTexture()"
+      - name: getMetallicRoughnessTexture
+        return: "const Texture*"
+        signatures:
+          - params: ""
+        description: "Get metallic-roughness texture"
+        description_ja: "metallic-roughness textureを取得"
+        description_ko: "메탈릭-러프니스 텍스처를 얻음"
+        snippet: "getMetallicRoughnessTexture()"
+      - name: hasMetallicRoughnessTexture
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if a metallic-roughness texture is set"
+        description_ja: "metallic-roughness textureが設定されているか確認"
+        description_ko: "메탈릭-러프니스 텍스처가 설정되었는지 확인"
+        snippet: "hasMetallicRoughnessTexture()"
+      - name: getEmissiveTexture
+        return: "const Texture*"
+        signatures:
+          - params: ""
+        description: "Get emissive texture"
+        description_ja: "emissive textureを取得"
+        description_ko: "이미시브 텍스처를 얻음"
+        snippet: "getEmissiveTexture()"
+      - name: hasEmissiveTexture
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if an emissive texture is set"
+        description_ja: "emissive textureが設定されているか確認"
+        description_ko: "이미시브 텍스처가 설정되었는지 확인"
+        snippet: "hasEmissiveTexture()"
+      - name: getOcclusionTexture
+        return: "const Texture*"
+        signatures:
+          - params: ""
+        description: "Get occlusion texture"
+        description_ja: "occlusion textureを取得"
+        description_ko: "오클루전 텍스처를 얻음"
+        snippet: "getOcclusionTexture()"
+      - name: hasOcclusionTexture
+        return: "bool"
+        signatures:
+          - params: ""
+        description: "Check if an occlusion texture is set"
+        description_ja: "occlusion textureが設定されているか確認"
+        description_ko: "오클루전 텍스처가 설정되었는지 확인"
+        snippet: "hasOcclusionTexture()"
     static_methods:
       - name: gold
         return: "Material"
@@ -9170,6 +9987,14 @@ types:
         description_ja: "ルビーのプリセット"
         description_ko: "루비 프리셋"
         snippet: "Material::ruby()"
+      - name: fromPhong
+        return: "Material"
+        signatures:
+          - params: "const Color& diffuse, const Color& specular, float shininess, const Color& emissive"
+        description: "Convert Phong material parameters to PBR (roughness from shininess, metallic estimated from specular luminance)"
+        description_ja: "Phong material parametersをPBRに変換（shininessからroughness、specular輝度からmetallic推定）"
+        description_ko: "퐁 재질 매개변수를 PBR로 변환 (광택도에서 러프니스, 스펙큘러 휘도에서 메탈릭 추정)"
+        snippet: "Material::fromPhong(${1:diffuse}, ${2:specular}, ${3:32.0f})"
 
   - name: IesProfile
     description: "IESNA LM-63 photometric profile for angular light intensity"
@@ -9206,6 +10031,30 @@ types:
         description_ja: "profileが読み込み済みか確認"
         description_ko: "프로파일이 로드되었는지 확인"
         snippet: "isLoaded()"
+      - name: getMaxVerticalAngle
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get maximum vertical angle in the profile (radians)"
+        description_ja: "profileの最大垂直角を取得（ラジアン）"
+        description_ko: "프로파일의 최대 수직 각도를 얻음 (라디안)"
+        snippet: "getMaxVerticalAngle()"
+      - name: getMaxCandela
+        return: "float"
+        signatures:
+          - params: ""
+        description: "Get maximum candela value in the profile"
+        description_ja: "profileの最大カンデラ値を取得"
+        description_ko: "프로파일의 최대 칸델라 값을 얻음"
+        snippet: "getMaxCandela()"
+      - name: getTextureWidth
+        return: "int"
+        signatures:
+          - params: ""
+        description: "Get width of the generated 1D lookup texture"
+        description_ja: "生成された1D lookup textureの幅を取得"
+        description_ko: "생성된 1D 룩업 텍스처의 너비를 얻음"
+        snippet: "getTextureWidth()"
 
   - name: Environment
     description: "IBL environment map for PBR ambient lighting (irradiance + prefilter + BRDF LUT)"
@@ -9250,6 +10099,38 @@ types:
         description_ja: "GPU resourceを解放"
         description_ko: "GPU 리소스를 해제"
         snippet: "release()"
+      - name: getIrradianceMap
+        return: "const Texture&"
+        signatures:
+          - params: ""
+        description: "Get irradiance cubemap for diffuse IBL"
+        description_ja: "diffuse IBL用irradiance cubemapを取得"
+        description_ko: "디퓨즈 IBL용 이래디언스 큐브맵을 얻음"
+        snippet: "getIrradianceMap()"
+      - name: getPrefilterMap
+        return: "const Texture&"
+        signatures:
+          - params: ""
+        description: "Get prefiltered environment cubemap for specular IBL"
+        description_ja: "specular IBL用prefilter cubemapを取得"
+        description_ko: "스펙큘러 IBL용 프리필터 큐브맵을 얻음"
+        snippet: "getPrefilterMap()"
+      - name: getBrdfLut
+        return: "const Texture&"
+        signatures:
+          - params: ""
+        description: "Get BRDF integration lookup texture"
+        description_ja: "BRDF integration LUTを取得"
+        description_ko: "BRDF 통합 LUT를 얻음"
+        snippet: "getBrdfLut()"
+      - name: getPrefilterMipLevels
+        return: "int"
+        signatures:
+          - params: ""
+        description: "Get number of mip levels in the prefilter map"
+        description_ja: "prefilter mapのmip level数を取得"
+        description_ko: "프리필터 맵의 밉 레벨 수를 얻음"
+        snippet: "getPrefilterMipLevels()"
 
   - name: EasyCam
     description: "3D camera with mouse control"
