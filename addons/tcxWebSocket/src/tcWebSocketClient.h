@@ -64,6 +64,15 @@ public:
     State getState() const { return state_; }
     bool isConnected() const { return state_ == State::Open; }
 
+    // TLS certificate verification (wss:// only, no effect on Emscripten).
+    // Default: verification is REQUIRED. Calling setTlsVerifyNone() before connect()
+    // disables verification — intended only for development against self-signed
+    // certs. Never use in production as it silently allows MITM.
+    void setTlsVerifyNone(bool disable = true) { tlsVerifyNone_ = disable; }
+    // Optional custom CA certificate (PEM). Applied to the underlying TlsClient on
+    // connect(). Empty string means use the system default trust store.
+    void setTlsCACertificate(const std::string& pem) { tlsCaPem_ = pem; }
+
 private:
     void setupClient(bool useTls);
     void handleRawReceive(TcpReceiveEventArgs& args);
@@ -87,6 +96,9 @@ private:
 
     std::vector<char> receiveBuffer_;
     std::string handshakeNonce_;
+
+    bool tlsVerifyNone_ = false;
+    std::string tlsCaPem_;
 
 #ifdef __EMSCRIPTEN__
     EMSCRIPTEN_WEBSOCKET_T wsHandle_ = 0;

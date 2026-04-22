@@ -154,7 +154,14 @@ void WebSocketClient::setupClient(bool useTls) {
 #ifndef __EMSCRIPTEN__
     if (useTls) {
         auto tls = std::make_unique<TlsClient>();
-        tls->setVerifyNone(); // Default for creative coding, maybe add config later
+        // Cert verification is REQUIRED by default; user must opt in to skip it
+        // via setTlsVerifyNone(). Silently disabling verification made wss://
+        // trivially MITM-able.
+        if (tlsVerifyNone_) {
+            tls->setVerifyNone();
+        } else if (!tlsCaPem_.empty()) {
+            tls->setCACertificate(tlsCaPem_);
+        }
         client_ = std::move(tls);
     } else {
         client_ = std::make_unique<TcpClient>();
