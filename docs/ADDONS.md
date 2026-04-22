@@ -458,7 +458,9 @@ TLS/SSL communication support (mbedTLS).
 
 **Features:**
 - Secure TCP communication
-- Certificate verification
+- Server certificate verification **required by default** (see [SECURITY.md](SECURITY.md))
+- Custom CA bundle via `setCACertificate()` / `setCACertificateFile()`
+- Dev-only opt-out via `setVerifyNone()` (don't ship)
 
 ### tcxWebSocket
 
@@ -468,3 +470,6 @@ WebSocket client and server.
 - WebSocket client (ws:// and wss://)
 - WebSocket server
 - Text and binary messages
+- For `wss://`: TLS cert verification **on by default**. Use
+  `setTlsVerifyNone()` or `setTlsCACertificate(pem)` on the client if needed
+  (see [SECURITY.md](SECURITY.md))

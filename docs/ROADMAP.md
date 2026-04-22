@@ -80,7 +80,8 @@ Image processing libraries are particularly prone to vulnerabilities, so **check
 |:--------|:--------|:----------------|:------|
 | **stb_image** | Image loading | **High** | Many CVEs, always use latest |
 | **stb_image_write** | Image writing | **High** | Same as above |
-| **stb_truetype** | Font rendering | Medium | |
+| **stb_truetype** | Font rendering | **High** | Upstream explicitly states "NO SECURITY GUARANTEE — do not use on untrusted font files". See [docs/SECURITY.md](SECURITY.md). |
+| **mbedTLS** (tcxTls) | TLS for tcxTls / tcxWebSocket | **High** | Track the v3.6.x LTS branch for CVE fixes. Current: v3.6.2. |
 | pugixml | XML parsing | Medium | |
 | nlohmann/json | JSON parsing | Medium | |
 | sokol | Rendering backend | Medium | **TrussC has customizations (see below)** |
