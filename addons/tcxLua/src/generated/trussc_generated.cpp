@@ -63,6 +63,38 @@ void tcxLua::setTrussCGeneratedBindings(const std::shared_ptr<sol::state>& lua){
     ));
     // tcMath.h, LINE 1110
     lua->set_function("randomSeed", [](unsigned int seed){  trussc::randomSeed(seed); });
+    // tcLog.h, LINE 35
+    lua->set_function("logLevelToString", [](LogLevel level){ return trussc::logLevelToString(level); });
+    // tcLog.h, LINE 211
+    lua->set_function("tcSetConsoleLogLevel", [](LogLevel level){  trussc::tcSetConsoleLogLevel(level); });
+    // tcLog.h, LINE 215
+    lua->set_function("tcSetFileLogLevel", [](LogLevel level){  trussc::tcSetFileLogLevel(level); });
+    // tcLog.h, LINE 219
+    lua->set_function("tcSetLogFile", [](const std::string & path){ return trussc::tcSetLogFile(path); });
+    // tcLog.h, LINE 223
+    lua->set_function("tcCloseLogFile", [](){  trussc::tcCloseLogFile(); });
+    // tcLog.h, LINE 284
+    lua->set_function("tcLog", [](LogLevel level){ return trussc::tcLog(level); });
+    // tcLog.h, LINE 288
+    lua->set_function("logVerbose", [](const std::string & module){ return trussc::logVerbose(module); });
+    // tcLog.h, LINE 292
+    lua->set_function("logNotice", [](const std::string & module){ return trussc::logNotice(module); });
+    // tcLog.h, LINE 296
+    lua->set_function("logWarning", [](const std::string & module){ return trussc::logWarning(module); });
+    // tcLog.h, LINE 300
+    lua->set_function("logError", [](const std::string & module){ return trussc::logError(module); });
+    // tcLog.h, LINE 304
+    lua->set_function("logFatal", [](const std::string & module){ return trussc::logFatal(module); });
+    // tcLog.h, LINE 311
+    lua->set_function("tcLogVerbose", [](const std::string & module){ return trussc::tcLogVerbose(module); });
+    // tcLog.h, LINE 312
+    lua->set_function("tcLogNotice", [](const std::string & module){ return trussc::tcLogNotice(module); });
+    // tcLog.h, LINE 313
+    lua->set_function("tcLogWarning", [](const std::string & module){ return trussc::tcLogWarning(module); });
+    // tcLog.h, LINE 314
+    lua->set_function("tcLogError", [](const std::string & module){ return trussc::tcLogError(module); });
+    // tcLog.h, LINE 315
+    lua->set_function("tcLogFatal", [](const std::string & module){ return trussc::tcLogFatal(module); });
     // TrussC.h, LINE 337
     lua->set_function("getDpiScale", [](){ return trussc::getDpiScale(); });
     // TrussC.h, LINE 342

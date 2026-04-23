@@ -26,7 +26,8 @@ target_filenames = [
     "TrussC.h",
     "tcMath.h",
     "tcPrimitives.h",
-    "tc3DGraphics.h"
+    "tc3DGraphics.h",
+    "tcLog.h"
 ]
 
 ignore_functions = {
@@ -48,6 +49,10 @@ ignore_functions = {
     ],
     "tc3DGraphics.h" : [
         "trussc#operator*"
+    ],
+    "tcLog.h" : [
+        "trussc#operator*",
+        "trussc#tcGetLogger"
     ]
 }
 
