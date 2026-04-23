@@ -28,10 +28,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Cache build directories
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             core/build-${{ matrix.preset }}
@@ -89,10 +89,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Cache Android build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             core/build-android
@@ -135,10 +135,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Cache build directories
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             core/build-web
