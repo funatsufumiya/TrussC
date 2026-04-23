@@ -33,11 +33,13 @@ file(READ "${_CA_BUNDLE_PEM}" CA_BUNDLE_CONTENT)
 # Parse out the Mozilla date line for logging.
 string(REGEX MATCH "Certificate data from Mozilla[^\n]*" CA_BUNDLE_DATE "${CA_BUNDLE_CONTENT}")
 
-# PEM をバイト配列(hex)に変換。MSVCの文字列リテラル上限(65535バイト)回避のため。
+# Convert PEM to a byte-array (hex) literal. MSVC enforces a 65535-byte limit
+# on string literals (error C2026) which applies to raw strings as well, so
+# the PEM is emitted as `unsigned char[]` instead.
 file(READ "${_CA_BUNDLE_PEM}" _CA_BUNDLE_HEX HEX)
-# 2文字ずつ 0x??, で区切り、末尾に 0x00 (null terminator) を追加
+# Split each hex pair into `0x??,` and append `0x00` as null terminator.
 string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," _CA_BUNDLE_HEX "${_CA_BUNDLE_HEX}")
-# 行を適度に折り返す（1行あたり約16バイト）
+# Wrap ~16 bytes per line to keep the generated .cpp readable.
 string(REGEX REPLACE "(0x[0-9a-f][0-9a-f],){16}" "\\0\n" _CA_BUNDLE_HEX "${_CA_BUNDLE_HEX}")
 set(CA_BUNDLE_HEX "${_CA_BUNDLE_HEX}0x00")
 

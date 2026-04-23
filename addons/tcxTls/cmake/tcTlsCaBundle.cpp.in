@@ -1,7 +1,8 @@
 // Auto-generated from addons/tcxTls/data/cacert.pem at configure time.
 // Do not edit by hand. To refresh, run scripts/update_ca_bundle.sh and reconfigure.
 //
-// PEMをバイト配列として埋め込み。MSVCの文字列リテラル上限(65535バイト)を回避するため。
+// Embedded as a byte array instead of a string literal — MSVC rejects string
+// literals above 65535 bytes (error C2026) and this bundle is ~226KB.
 
 namespace trussc {
 namespace tls_internal {
