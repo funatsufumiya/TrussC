@@ -1,5 +1,7 @@
 // Auto-generated from addons/tcxTls/data/cacert.pem at configure time.
 // Do not edit by hand. To refresh, run scripts/update_ca_bundle.sh and reconfigure.
+//
+// PEMをバイト配列として埋め込み。MSVCの文字列リテラル上限(65535バイト)を回避するため。
 
 namespace trussc {
 namespace tls_internal {
@@ -7,11 +9,12 @@ namespace tls_internal {
 extern const char* bundledCaPem();
 extern const char* bundledCaBundleDate();
 
+static const unsigned char kPemData[] = {
+@CA_BUNDLE_HEX@
+};
+
 const char* bundledCaPem() {
-    static const char kPem[] = R"TLS_CA_BUNDLE(
-@CA_BUNDLE_CONTENT@
-)TLS_CA_BUNDLE";
-    return kPem;
+    return reinterpret_cast<const char*>(kPemData);
 }
 
 const char* bundledCaBundleDate() {

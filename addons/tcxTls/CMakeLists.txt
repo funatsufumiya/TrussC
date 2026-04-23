@@ -32,6 +32,15 @@ endif()
 file(READ "${_CA_BUNDLE_PEM}" CA_BUNDLE_CONTENT)
 # Parse out the Mozilla date line for logging.
 string(REGEX MATCH "Certificate data from Mozilla[^\n]*" CA_BUNDLE_DATE "${CA_BUNDLE_CONTENT}")
+
+# PEM をバイト配列(hex)に変換。MSVCの文字列リテラル上限(65535バイト)回避のため。
+file(READ "${_CA_BUNDLE_PEM}" _CA_BUNDLE_HEX HEX)
+# 2文字ずつ 0x??, で区切り、末尾に 0x00 (null terminator) を追加
+string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," _CA_BUNDLE_HEX "${_CA_BUNDLE_HEX}")
+# 行を適度に折り返す（1行あたり約16バイト）
+string(REGEX REPLACE "(0x[0-9a-f][0-9a-f],){16}" "\\0\n" _CA_BUNDLE_HEX "${_CA_BUNDLE_HEX}")
+set(CA_BUNDLE_HEX "${_CA_BUNDLE_HEX}0x00")
+
 set(_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(_GEN_CPP "${_GEN_DIR}/tcTlsCaBundle.cpp")
 file(MAKE_DIRECTORY "${_GEN_DIR}")
