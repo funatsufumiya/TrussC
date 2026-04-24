@@ -619,7 +619,7 @@ message(\"  [HotReload] Generated \${DEF_FILE} with \${SYM_COUNT} symbols\")
             endif()
 
             if(NOT EXISTS "${_TC_ANDROID_JAR}")
-                message(FATAL_ERROR "[${PROJECT_NAME}] ${ANDROID_HOME}/platforms/andoid-XXX/android.jar not found")
+                message(FATAL_ERROR "[${PROJECT_NAME}] ${ANDROID_HOME}/platforms/android-XXX/android.jar not found")
             endif()
 
             file(MAKE_DIRECTORY "${_TC_APK_DIR}")
