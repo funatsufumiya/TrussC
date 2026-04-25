@@ -4,6 +4,14 @@
 #include "sol/sol.hpp"
 using namespace tc;
 
+// WORKAROUND: to support deprecated functions in lua
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif // #ifndef _MSC_VER
+
 // namespace tcx::lua {
 
 std::shared_ptr<sol::state> tcxLua::getLuaState(){
@@ -39,6 +47,80 @@ void tcxLua::setConstBindings(const std::shared_ptr<sol::state>& lua){
     l["HALF_TAU"] = HALF_TAU;
     l["QUARTER_TAU"] = QUARTER_TAU;
 }
+
+template<typename T>
+inline void json_new_index_table_fn(Json& j, T i, const sol::table& tbl){
+    int _i = 0;
+    for (std::pair<sol::object, sol::object>& kv : tbl) 
+    {
+        if (kv.first.get_type() == sol::type::string)
+        {
+            std::string key = kv.first.as<std::string>();
+            // std::cerr << key << std::endl;
+            // std::cerr << key << ": " << kv.second() << std::endl;
+
+            if(kv.second.get_type() == sol::type::number){
+                lua_Number v = kv.second.as<lua_Number>();
+                j[i][key] = v;
+            }else if(kv.second.get_type() == sol::type::string){
+                std::string v = kv.second.as<std::string>();
+                j[i][key] = v;
+            }else if(kv.second.get_type() == sol::type::nil){
+                nlohmann::json j_null;
+                j[i][key] = j_null;
+            }else if(kv.second.get_type() == sol::type::none){
+                nlohmann::json j_null;
+                j[i][key] = j_null;
+            }else if(kv.second.get_type() == sol::type::table){
+                j[i][key] = nlohmann::json::object({});
+                auto&& v = kv.second.as<sol::table>();
+                json_new_index_table_fn(j[i], key, v);
+            }else{
+                std::cerr << "[tcxLua error] unsupported table insertion";
+                std::cerr << " (debug value type id: " << (int)kv.second.get_type() << ")" << std::endl;
+                assert(false);
+            }
+        }
+
+        if (kv.first.get_type() == sol::type::number)
+        {
+            lua_Number _key = kv.first.as<lua_Number>();
+            int key = _key - 1; // Lua index workaround
+
+            // std::cerr << key << std::endl;
+            // std::cerr << key << ": " << kv.second() << std::endl;
+
+            if(kv.second.get_type() == sol::type::number){
+                lua_Number v = kv.second.as<lua_Number>();
+                j[i][key] = v;
+            }else if(kv.second.get_type() == sol::type::string){
+                std::string v = kv.second.as<std::string>();
+                j[i][key] = v;
+            }else if(kv.second.get_type() == sol::type::nil){
+                nlohmann::json j_null;
+                j[i][key] = j_null;
+            }else if(kv.second.get_type() == sol::type::none){
+                nlohmann::json j_null;
+                j[i][key] = j_null;
+            }else if(kv.second.get_type() == sol::type::table){
+                j[i][key] = nlohmann::json::object({});
+                auto&& v = kv.second.as<sol::table>();
+                json_new_index_table_fn(j[i], key, v);
+            }else{
+                std::cerr << "[tcxLua error] unsupported table insertion";
+                std::cerr << " (debug value type id: " << (int)kv.second.get_type() << ")" << std::endl;
+                assert(false);
+            }
+        }
+
+        _i++;
+    }
+
+    if(_i == 0){
+        j[i] = nlohmann::json::object({});
+    }
+}
+
 
 void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     sol::usertype<Vec2> vec2_type = lua->new_usertype<Vec2>("Vec2",
@@ -438,7 +520,9 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     tex_type["getSampler"] = &Texture::getSampler;
     tex_type["getAttachmentView"] = &Texture::getAttachmentView;
 
-    sol::usertype<TextureFormat> tex_format_type = lua->new_usertype<TextureFormat>("TextureFormat");
+    sol::usertype<TextureFormat> tex_format_type = lua->new_usertype<TextureFormat>("TextureFormat",
+        sol::meta_function::equal_to, [](TextureFormat a, TextureFormat b){ return a == b; }
+    );
     tex_format_type["RGBA8"] = sol::var(TextureFormat::RGBA8);
     tex_format_type["RGBA16F"] = sol::var(TextureFormat::RGBA16F);
     tex_format_type["RGBA32F"] = sol::var(TextureFormat::RGBA32F);
@@ -503,7 +587,9 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     pix_type["loadFromMemory"] = &Pixels::loadFromMemory;
     pix_type["save"] = &Pixels::save;
 
-    sol::usertype<PixelFormat> pix_format_type = lua->new_usertype<PixelFormat>("PixelFormat");
+    sol::usertype<PixelFormat> pix_format_type = lua->new_usertype<PixelFormat>("PixelFormat",
+        sol::meta_function::equal_to, [](PixelFormat a, PixelFormat b){ return a == b; }
+    );
     pix_format_type["U8"] = sol::var(PixelFormat::U8);
     pix_format_type["F32"] = sol::var(PixelFormat::F32);
 
@@ -652,7 +738,9 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     light_t["isEnabled"] = &Light::isEnabled;
     light_t["calculate"] = &Light::calculate;
 
-    sol::usertype<LightType> lighttype_t = lua->new_usertype<LightType>("LightType");
+    sol::usertype<LightType> lighttype_t = lua->new_usertype<LightType>("LightType",
+        sol::meta_function::equal_to, [](LightType a, LightType b){ return a == b; }
+    );
     lighttype_t["Directional"] = sol::var(LightType::Directional);
     lighttype_t["Point"] = sol::var(LightType::Point);
     lighttype_t["Spot"] = sol::var(LightType::Spot);
@@ -716,20 +804,66 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     material_t["hasOcclusionTexture"] = &Material::hasOcclusionTexture;
 
     lua->set_function("loadJson", &trussc::loadJson);
-    lua->set_function("saveJson", &trussc::saveJson);
+    lua->set_function("saveJson", sol::overload(
+        [](const Json& j, const std::string& path){ return trussc::saveJson(j, path); },
+        [](const Json& j, const std::string& path, int indent){ return trussc::saveJson(j, path, indent); }
+    ));
     lua->set_function("parseJson", &trussc::parseJson);
     lua->set_function("toJsonString", &trussc::toJsonString);
 
     sol::usertype<Json> json_t = lua->new_usertype<Json>("Json",
-        sol::constructors<Json()>()
+        sol::constructors<Json()>(),
+        "get_string", [](Json& j){ return j.get<std::string>(); },
+        "get_double", [](Json& j){ return j.get<double>(); },
+        "get_float", [](Json& j){ return j.get<float>(); },
+        "get_int", [](Json& j){ return j.get<int>(); },
+        "get_bool", [](Json& j){ return j.get<bool>(); },
+        "empty", &Json::empty,
+        "size", &Json::size,
+        sol::meta_function::index, sol::overload(
+            [](Json& j, size_t i){ return j[i]; },
+            [](Json& j, const std::string& s){ return j[s]; }
+        ),
+        sol::meta_function::new_index, sol::overload(
+            [](Json& j, size_t i, bool v){ return j[i] = v; },
+            [](Json& j, size_t i, int v){ return j[i] = v; },
+            [](Json& j, size_t i, float v){ return j[i] = v; },
+            [](Json& j, size_t i, long v){ return j[i] = v; },
+            [](Json& j, size_t i, double v){ return j[i] = v; },
+            [](Json& j, size_t i, const std::string& v){ return j[i] = v; },
+            [](Json& j, size_t i, const Json& v){ return j[i] = v; },
+            // [](Json& j, size_t i, const sol::object& v){ return j[i] = v; },
+            [](Json& j, const std::string& s, bool v){ return j[s] = v; },
+            [](Json& j, const std::string& s, int v){ return j[s] = v; },
+            [](Json& j, const std::string& s, float v){ return j[s] = v; },
+            [](Json& j, const std::string& s, long v){ return j[s] = v; },
+            [](Json& j, const std::string& s, double v){ return j[s] = v; },
+            [](Json& j, const std::string& s, const std::string& v){ return j[s] = v; },
+            [](Json& j, const std::string& s, const Json& v){ return j[s] = v; },
+            [](Json& j, size_t i, const sol::table& tbl){
+                json_new_index_table_fn(j, i, tbl);
+            },
+            [](Json& j, const std::string& i, const sol::table& tbl){
+                json_new_index_table_fn(j, i, tbl);
+            }
+        )
     );
+
+    lua->set_function("loadXml", &trussc::loadXml);
+    lua->set_function("parseXml", &trussc::parseXml);
 
     sol::usertype<Xml> xml_t = lua->new_usertype<Xml>("Xml",
         sol::constructors<Xml()>(),
         "load", &Xml::load,
         "parse", &Xml::parse,
-        "save", &Xml::save,
-        "toString", &Xml::toString,
+        "save", sol::overload(
+            [](Xml& x, const std::string& s){ return x.save(s); },
+            [](Xml& x, const std::string& s, const std::string& i){ return x.save(s, i); }
+        ),
+        "toString", sol::overload(
+            [](Xml& x){ return x.toString(); },
+            [](Xml& x, const std::string& i){ return x.toString(i); }
+        ),
         "root", [](Xml& x){ return x.root(); },
         "addRoot", &Xml::addRoot,
         "child", &Xml::child,
@@ -742,13 +876,88 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
         )
     );
 
-    sol::usertype<LogLevel> loglevel_t = lua->new_usertype<LogLevel>("LogLevel");
+    sol::usertype<XmlAttribute> xmlattr_t = lua->new_usertype<XmlAttribute>("XmlAttribute",
+        sol::constructors<XmlAttribute()>(),
+        "set", sol::overload( // WORKAROUND
+            [](XmlAttribute& x, pugi::string_view_t s){ return (x = s); },
+            [](XmlAttribute& x, const pugi::char_t* s){ return (x = s); },
+            [](XmlAttribute& x, int s){ return (x = s); },
+            [](XmlAttribute& x, float s){ return (x = s); },
+            [](XmlAttribute& x, long s){ return (x = s); }
+        ),
+        "value", &XmlAttribute::value
+    );
+
+    using XmlText = pugi::xml_text;
+
+    sol::usertype<XmlText> xmltext_t = lua->new_usertype<XmlText>("XmlText",
+        sol::constructors<XmlText()>(),
+        "set", sol::overload( // WORKAROUND
+            [](XmlText& x, pugi::string_view_t s){ return (x = s); },
+            [](XmlText& x, const pugi::char_t* s){ return (x = s); },
+            [](XmlText& x, int s){ return (x = s); },
+            [](XmlText& x, float s){ return (x = s); },
+            [](XmlText& x, long s){ return (x = s); }
+        ),
+        "get", &XmlText::get
+    );
+
+    sol::usertype<XmlNode> xmlnode_t = lua->new_usertype<XmlNode>("XmlNode",
+        sol::constructors<XmlNode()>(),
+        "append_attribute", sol::overload(
+            [](XmlNode& x, pugi::string_view_t n){ return x.append_attribute(n); },
+            [](XmlNode& x, const pugi::char_t* n){ return x.append_attribute(n); }
+        ),
+        "prepend_attribute", sol::overload(
+            [](XmlNode& x, pugi::string_view_t n){ return x.prepend_attribute(n); },
+            [](XmlNode& x, const pugi::char_t* n){ return x.prepend_attribute(n); }
+        ),
+        "append_child", sol::overload(
+            [](XmlNode& x, pugi::string_view_t n){ return x.append_child(n); },
+            [](XmlNode& x, const pugi::char_t* n){ return x.append_child(n); }
+        ),
+        "prepend_child", sol::overload(
+            [](XmlNode& x, pugi::string_view_t n){ return x.prepend_child(n); },
+            [](XmlNode& x, const pugi::char_t* n){ return x.prepend_child(n); }
+        ),
+        "attribute", sol::overload(
+            [](XmlNode& x, pugi::string_view_t n){ return x.attribute(n); },
+            [](XmlNode& x, const pugi::char_t* n){ return x.attribute(n); }
+        ),
+        "child", sol::overload(
+            [](XmlNode& x, pugi::string_view_t n){ return x.child(n); },
+            [](XmlNode& x, const pugi::char_t* n){ return x.child(n); }
+        ),
+        "text", &XmlNode::text,
+        "first_child", &XmlNode::first_child,
+        "last_child", &XmlNode::last_child,
+        "first_attribute", &XmlNode::first_attribute,
+        "last_attribute", &XmlNode::last_attribute,
+        "remove_children", &XmlNode::remove_children,
+        // "children", [](XmlNode& x){ return x.children(); }
+        "children", [lua](XmlNode& x){ // WORKAROUND for ipairs etc
+            auto&& tbl = lua->create_table();
+            for(auto&& n : x.children()){
+                tbl.add(n);
+            }
+            return tbl;
+        }
+    );
+
+    sol::usertype<LogLevel> loglevel_t = lua->new_usertype<LogLevel>("LogLevel",
+        sol::meta_function::equal_to, [](LogLevel a, LogLevel b){ return a == b; }
+    );
     loglevel_t["Verbose"] = sol::var(LogLevel::Verbose);
     loglevel_t["Notice"] = sol::var(LogLevel::Notice);
     loglevel_t["Warning"] = sol::var(LogLevel::Warning);
     loglevel_t["Error"] = sol::var(LogLevel::Error);
     loglevel_t["Fatal"] = sol::var(LogLevel::Fatal);
     loglevel_t["Silent"] = sol::var(LogLevel::Silent);
+
+    sol::usertype<Font> font_t = lua->new_usertype<Font>("Font",
+        sol::constructors<Font(), Font(const Font&), Font(Font&&)>(),
+        "load", &Font::load
+    );
 }
 
 struct Colors{};
@@ -935,3 +1144,8 @@ void tcxLua::setMathBindings(const std::shared_ptr<sol::state>& lua){
 }
 
 // } // namespace tcx::lua
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#pragma clang diagnostic pop
+#endif // #ifndef _MSC_VER

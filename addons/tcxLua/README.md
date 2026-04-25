@@ -16,6 +16,8 @@
 - Mesh, Shader
 - Fbo, Texture, Image, Pixels
 - EasyCam, Light, Material
+- Font
+- Json, Xml
 
 ## Known Issues
 
