@@ -15,11 +15,24 @@ prev = """
 #include "sol/sol.hpp"
 using namespace tc;
 
+// WORKAROUND: to support deprecated functions in lua
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif // #ifndef _MSC_VER
+
 void tcxLua::setTrussCGeneratedBindings(const std::shared_ptr<sol::state>& lua){
 """
 
 after = """
 }
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#pragma clang diagnostic pop
+#endif // #ifndef _MSC_VER
 """
 
 target_filenames = [
@@ -69,13 +82,21 @@ ignore_classes = {
 additional_overloads = {
     "TrussC.h": {
         "trussc#setColor": [
+            "[](float r){  trussc::setColor(r); }",
             "[](float r, float g, float b){  trussc::setColor(r, g, b); }"
         ],
         "trussc#setColorHSB": [
             "[](float h, float s, float b){  trussc::setColorHSB(h, s, b); }"
         ],
         "trussc#clear": [
+            "[](float r){  trussc::clear(r); }",
             "[](float r, float g, float b){  trussc::clear(r, g, b); }"
+        ],
+        "trussc#drawBitmapString": [
+            "[](const std::string& s, float x, float y){  trussc::drawBitmapString(s, x, y); }"
+        ],
+        "trussc#drawBitmapStringHighlight": [
+            "[](const std::string& s, float x, float y){  trussc::drawBitmapStringHighlight(s, x, y); }"
         ]
     },
 }
