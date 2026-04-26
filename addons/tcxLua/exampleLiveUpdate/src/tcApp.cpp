@@ -99,7 +99,7 @@ void tcApp::draw() {
 void tcApp::keyPressed(int key) {
     if(key == KEY_BACKSPACE){
         if(script.size() > 0){
-            script.pop_back();
+            script = script.substr(0, script.length()-1);  
         }
     }else if(key == 'r' || key == 'R'){
         reset();
