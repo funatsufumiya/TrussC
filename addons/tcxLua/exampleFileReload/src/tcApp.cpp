@@ -1,6 +1,6 @@
 #include "tcApp.h"
 
-#if defined(TARGET_OS_IPHONE)
+#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE == 1
 #define FILE_RELOAD_UNSUPPORTED
 #elif defined(__ANDROID__)
 #define FILE_RELOAD_UNSUPPORTED
@@ -8,7 +8,7 @@
 #define FILE_RELOAD_UNSUPPORTED
 #elif defined(_WIN32)
 #define FILE_RELOAD_SUPPORTED
-#elif defined(TARGET_OS_MAC)
+#elif defined(TARGET_OS_MAC) && TARGET_OS_MAC == 1
 #define FILE_RELOAD_SUPPORTED
 #elif defined(__linux__)
 #define FILE_RELOAD_SUPPORTED
@@ -46,20 +46,26 @@ void tcApp::setup() {
 
     reloadLuaFile();
 
+#ifdef FILE_RELOAD_SUPPORTED
     // lua->script("setup()");
     ((*lua)["setup"])();
+#endif // FILE_RELOAD_SUPPORTED
 }
 
 void tcApp::update() {
+#ifdef FILE_RELOAD_SUPPORTED
     // lua->script("update()");
     ((*lua)["update"])();
+#endif // FILE_RELOAD_SUPPORTED
 }
 
 void tcApp::draw() {
     pushStyle();
 
+#ifdef FILE_RELOAD_SUPPORTED
     // lua->script("draw()");
     ((*lua)["draw"])();
+#endif // FILE_RELOAD_SUPPORTED
 
     popStyle();
 
@@ -73,6 +79,7 @@ void tcApp::draw() {
 }
 
 void tcApp::keyPressed(int key) {
+#ifdef FILE_RELOAD_SUPPORTED
     // lua->script("keyPressed(" + std::to_string(key) + ")");
     ((*lua)["keyPressed"])(key);
 
@@ -82,6 +89,7 @@ void tcApp::keyPressed(int key) {
         // lua->script("setup()");
         ((*lua)["setup"])();
     }
+#endif // FILE_RELOAD_SUPPORTED
 }
 
 void tcApp::keyReleased(int key) {}
