@@ -2,6 +2,9 @@
 
 #include "sol/sol.hpp"
 
+// FIXME: This example would not work perfectly on Web (Emscripten) some part.
+//        Check notes after here.
+
 void tcApp::setup() {
     lua.open_libraries(sol::lib::base);
 
@@ -31,6 +34,9 @@ void tcApp::update() {
 
     lua["x"] = x;
     lua["y"] = y;
+
+    // FIXME: in emscripten (web), this try catch would not work, just raise runtime_error and abort.
+    // FIXME: in desktop environment, works but warnings are shown if parse error occured.
 
     try{
         sol::optional<sol::error> result = lua.safe_script("x, y = " + script);
