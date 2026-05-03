@@ -33,7 +33,10 @@ std::shared_ptr<sol::state> tcxLua::getLuaState(){
         sol::lib::base,
         sol::lib::math,
         sol::lib::string,
-        sol::lib::table
+        sol::lib::table,
+        sol::lib::package,
+        sol::lib::coroutine,
+        sol::lib::io
     );
 
     setBindings(lua);
@@ -188,6 +191,11 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     vec2_type["x"] = &Vec2::x;
     vec2_type["y"] = &Vec2::y;
 
+    vec2_type["set"] = sol::overload(
+        [](Vec2& v, const Vec2& a){ return v.set(a); },
+        [](Vec2& v, float a, float b){ return v.set(a,b); }
+    );
+
     vec2_type["length"] = &Vec2::length;
     vec2_type["lengthSquared"] = &Vec2::lengthSquared;
     vec2_type["normalized"] = &Vec2::normalized;
@@ -235,6 +243,11 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     vec3_type["y"] = &Vec3::y;
     vec3_type["z"] = &Vec3::z;
 
+    vec3_type["set"] = sol::overload(
+        [](Vec3& v, const Vec3& a){ return v.set(a); },
+        [](Vec3& v, float a, float b, float c){ return v.set(a,b,c); }
+    );
+
     vec3_type["length"] = &Vec3::length;
     vec3_type["lengthSquared"] = &Vec3::lengthSquared;
     vec3_type["normalized"] = &Vec3::normalized;
@@ -269,6 +282,11 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     vec4_type["y"] = &Vec4::y;
     vec4_type["z"] = &Vec4::z;
     vec4_type["w"] = &Vec4::w;
+
+    vec4_type["set"] = sol::overload(
+        [](Vec4& v, const Vec4& a){ return v.set(a); },
+        [](Vec4& v, float a, float b, float c, float d){ return v.set(a,b,c,d); }
+    );
 
     vec4_type["length"] = &Vec4::length;
     vec4_type["lengthSquared"] = &Vec4::lengthSquared;
@@ -357,6 +375,14 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
     color_type["g"] = &Color::g;
     color_type["b"] = &Color::b;
     color_type["a"] = &Color::a;
+
+    color_type["set"] = sol::overload(
+        [](Color& v, const Color& a){ return v.set(a); },
+        [](Color& v, float a, float b, float c, float d){ return v.set(a,b,c,d); },
+        [](Color& v, float a, float b, float c){ return v.set(a,b,c); },
+        [](Color& v, float a, float b){ return v.set(a,b); },
+        [](Color& v, float a){ return v.set(a); }
+    );
 
     color_type["fromBytes"] = &Color::fromBytes;
     color_type["fromHex"] = &Color::fromHex;
@@ -1007,6 +1033,10 @@ void tcxLua::setTypeBindings(const std::shared_ptr<sol::state>& lua){
             Rect(const Rect&), Rect(Rect&&)>(),
         "x", &Rect::x,
         "y", &Rect::y,
+        "set", sol::overload(
+            [](Rect& v, const Vec2& a, float c, float d){ return v.set(a,c,d); },
+            [](Rect& v, float a, float b, float c, float d){ return v.set(a,b,c,d); }
+        ),
         "width", &Rect::width,
         "height", &Rect::height,
         "getRight", &Rect::getRight,
